@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::io::{self, Read};
 
 #[derive(Debug)]
 struct Tag {
@@ -20,40 +20,28 @@ impl Tag {
     }
 }
 
-fn main() {
-    let mut fh = File::open("data/file_2.fif").unwrap();
-    let mut buffer = [0; 2048];
+fn main() -> io::Result<()> {
+    let fh = File::open("data/file_0.fif").unwrap();
+    let mut reader = io::BufReader::new(fh);
+    let mut buf = [0u8; 16];
 
-    fh.read(&mut buffer).unwrap();
-
-    let mut cursor = Cursor::new(buffer);
-
-    let mut bytes = [0; 16];
-    cursor.read(&mut bytes).unwrap();
-
-    while let Some((tag, next)) =
-        parse_tag_from_bytes(&bytes, cursor.position().try_into().unwrap())
-    {
-        cursor.seek(SeekFrom::Start(next as u64)).unwrap();
-        cursor.read(&mut bytes).unwrap();
-        println!("{:#?}, {:#?}", tag, cursor.position());
+    while let Ok(()) = reader.read_exact(&mut buf) {
+        let (tag, size) = parse_tag_from_bytes(&buf);
+        println!("{:?}", tag);
+        reader.seek_relative(size)?;
     }
+
+    println!("Finished reading");
+
+    Ok(())
 }
 
-fn parse_tag_from_bytes(bytes: &[u8; 16], cursor: i32) -> Option<(Tag, i32)> {
+fn parse_tag_from_bytes(bytes: &[u8; 16]) -> (Tag, i64) {
     let mut ints = [0i32; 4];
 
     for (ii, chunk) in bytes.chunks_exact(4).enumerate() {
         let value = i32::from_be_bytes(chunk.try_into().unwrap());
         ints[ii] = value;
     }
-
-    let next = match (ints[2], ints[3]) {
-        // size, next
-        (0, 0) => return None,      // we hit the end tag (I think)
-        (size, 0) => cursor + size, // next tag is at cursor + size bytes
-        (_, next) => next,          // next tag is at this absolute location
-    };
-
-    Some((Tag::new(&ints), next))
+    (Tag::new(&ints), ints[2].try_into().unwrap())
 }
