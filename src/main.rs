@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-
 #[derive(Debug)]
 struct Tag {
     kind: i32,  // DictionaryTags.txt
@@ -29,18 +28,19 @@ fn main() {
 
     let mut cursor = Cursor::new(buffer);
 
-    for _ in 0..20 {
-        let mut bytes = [0; 16];
-        cursor.read(&mut bytes).unwrap();
-        let (tag, next) = parse_tag_from_bytes(&bytes, cursor.position().try_into().unwrap());
+    let mut bytes = [0; 16];
+    cursor.read(&mut bytes).unwrap();
 
+    while let Some((tag, next)) =
+        parse_tag_from_bytes(&bytes, cursor.position().try_into().unwrap())
+    {
         cursor.seek(SeekFrom::Start(next as u64)).unwrap();
-        println!("{:#?}", tag);
+        cursor.read(&mut bytes).unwrap();
+        println!("{:#?}, {:#?}", tag, cursor.position());
     }
 }
 
-
-fn parse_tag_from_bytes(bytes: &[u8; 16], cursor: i32) -> (Tag, i32) {
+fn parse_tag_from_bytes(bytes: &[u8; 16], cursor: i32) -> Option<(Tag, i32)> {
     let mut ints = [0i32; 4];
 
     for (ii, chunk) in bytes.chunks_exact(4).enumerate() {
@@ -48,10 +48,12 @@ fn parse_tag_from_bytes(bytes: &[u8; 16], cursor: i32) -> (Tag, i32) {
         ints[ii] = value;
     }
 
-    let next = match ints[3] {
-        0 => ints[2] + cursor, // next tag is at cursor + size bytes
-        _ => ints[3],          // next tag is at this absolute location
+    let next = match (ints[2], ints[3]) {
+        // size, next
+        (0, 0) => return None,      // we hit the end tag (I think)
+        (size, 0) => cursor + size, // next tag is at cursor + size bytes
+        (_, next) => next,          // next tag is at this absolute location
     };
 
-    (Tag::new(&ints), next)
+    Some((Tag::new(&ints), next))
 }
