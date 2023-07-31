@@ -24,9 +24,13 @@ impl Tag {
 fn main() -> io::Result<()> {
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
-        .from_path("fiff/blocks.tsv").expect("file should be found in fiff/blocks.tsv");
+        .from_path("fiff/blocks.tsv")
+        .expect("file should be found in fiff/blocks.tsv");
 
-    println!("{:?}", reader.records().next().unwrap());
+    while let Some(record) = reader.records().next() {
+        let record = record.unwrap();
+        println!("{:?}", record);
+    }
 
     let fh = File::open("data/file_0.fif").unwrap();
     let mut reader = io::BufReader::new(fh);
