@@ -1,3 +1,4 @@
+use csv::ReaderBuilder;
 use std::fs::File;
 use std::io::{self, Read};
 
@@ -21,13 +22,19 @@ impl Tag {
 }
 
 fn main() -> io::Result<()> {
+    let mut reader = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .from_path("fiff/blocks.tsv").expect("file should be found in fiff/blocks.tsv");
+
+    println!("{:?}", reader.records().next().unwrap());
+
     let fh = File::open("data/file_0.fif").unwrap();
     let mut reader = io::BufReader::new(fh);
     let mut buf = [0u8; 16];
 
     while let Ok(()) = reader.read_exact(&mut buf) {
         let (tag, size) = parse_tag_from_bytes(&buf);
-        println!("{:?}", tag);
+        // println!("{:?}", tag);
         reader.seek_relative(size)?;
     }
 
