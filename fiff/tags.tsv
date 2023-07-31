@@ -1,3 +1,4 @@
+name	code	dtype	unit	description
 file_id	100	id1.1	-	"Id of the file"
 dir_pointer	101	int32	-	"Pointer to directory"
 dir	102	int32	-	"Tag directory"

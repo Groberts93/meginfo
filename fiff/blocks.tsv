@@ -1,3 +1,4 @@
+name	code	is_tagged	description
 root	999	tagged	"Root block of a file (has not been used so far)."
 meas	100	tagged	"Measurement"
 meas_info	101	tagged	"The information about the acquisition details."

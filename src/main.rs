@@ -1,4 +1,7 @@
 use csv::ReaderBuilder;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::error::Error;
 use std::fs::File;
 use std::io::{self, Read};
 
@@ -9,6 +12,10 @@ struct Tag {
     size: i32,  // size in bytes
     next: i32,  // offset from start of file to next tag if > 0
 }
+
+// struct Block {
+
+// }
 
 impl Tag {
     fn new(ints: &[i32; 4]) -> Self {
@@ -21,24 +28,47 @@ impl Tag {
     }
 }
 
-fn main() -> io::Result<()> {
+#[derive(Debug, Deserialize, Default)]
+struct TagDef {
+    name: String,
+    code: i32,
+    dtype: String,
+    unit: String,
+    description: String,
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+
+    // read tags from tsv into a dictionary
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
-        .from_path("fiff/blocks.tsv")
-        .expect("file should be found in fiff/blocks.tsv");
+        .from_path("fiff/tags.tsv")
+        .expect("file should be found in fiff/tags.tsv");
 
-    while let Some(record) = reader.records().next() {
-        let record = record.unwrap();
-        println!("{:?}", record);
+    let mut tag_dict: HashMap<i32, TagDef> = HashMap::new();
+
+    for result in reader.deserialize() {
+        let record: TagDef = result?;
+        tag_dict.insert(record.code, record);
     }
 
-    let fh = File::open("data/file_0.fif").unwrap();
+    // open the fif file, wrap in bufreader
+    let fh = File::open("data/file_2.fif").unwrap();
     let mut reader = io::BufReader::new(fh);
     let mut buf = [0u8; 16];
 
+    // read tags sequentially until we find the end (no op) tag
     while let Ok(()) = reader.read_exact(&mut buf) {
         let (tag, size) = parse_tag_from_bytes(&buf);
-        // println!("{:?}", tag);
+        println!(
+            "{:?}",
+            tag_dict.get(&tag.kind).unwrap_or(&TagDef {
+                code: tag.kind,
+                name: "unknown".to_string(),
+                description: "Unrecognized tag".to_string(),
+                ..Default::default()
+            })
+        );
         reader.seek_relative(size)?;
     }
 
