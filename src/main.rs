@@ -1,51 +1,21 @@
 use csv::ReaderBuilder;
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Read, Seek};
 
-#[derive(Debug)]
-struct Tag {
-    kind: i32,  // DictionaryTags.txt
-    type_: i32, // DictionaryTypes.txt
-    size: i32,  // size in bytes
-    next: i32,  // offset from start of file to next tag if > 0
-}
+mod tag;
 
-// struct Block {
-
-// }
-
-impl Tag {
-    fn new(ints: &[i32; 4]) -> Self {
-        Tag {
-            kind: ints[0],
-            type_: ints[1],
-            size: ints[2],
-            next: ints[3],
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct TagDef {
-    name: String,
-    code: i32,
-    dtype: String,
-    unit: String,
-    description: String,
-}
+use tag::{Tag, TagDef};
 
 fn main() -> Result<(), Box<dyn Error>> {
-
     // read tags from tsv into a dictionary
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
         .from_path("fiff/tags.tsv")
         .expect("file should be found in fiff/tags.tsv");
 
-    let mut tag_dict: HashMap<i32, TagDef> = HashMap::new();
+    let mut tag_dict: HashMap<i32, tag::TagDef> = HashMap::new();
 
     for result in reader.deserialize() {
         let record: TagDef = result?;
@@ -54,25 +24,26 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // open the fif file, wrap in bufreader
     let fh = File::open("data/file_2.fif").unwrap();
+    let file_length = fh.metadata().unwrap().len();
     let mut reader = io::BufReader::new(fh);
     let mut buf = [0u8; 16];
 
     // read tags sequentially until we find the end (no op) tag
     while let Ok(()) = reader.read_exact(&mut buf) {
         let (tag, size) = parse_tag_from_bytes(&buf);
-        println!(
-            "{:?}",
-            tag_dict.get(&tag.kind).unwrap_or(&TagDef {
-                code: tag.kind,
-                name: "unknown".to_string(),
-                description: "Unrecognized tag".to_string(),
-                ..Default::default()
-            })
-        );
+
+        let default_tag_def = TagDef::default();
+        println!("{:?}", tag_dict.get(&tag.kind).unwrap_or(&default_tag_def));
         reader.seek_relative(size)?;
     }
 
-    println!("Finished reading");
+    let cur_pos = reader
+        .seek(io::SeekFrom::Current(0))
+        .expect("should be able to seek to current position");
+    println!(
+        "Finished reading, cursor at {} bytes, file is {} bytes long",
+        cur_pos, file_length
+    );
 
     Ok(())
 }
