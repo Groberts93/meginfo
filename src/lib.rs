@@ -1,4 +1,5 @@
 mod parser;
+mod primitive;
 mod tag;
 
 use parser::{read_tag_dict, FifParser};

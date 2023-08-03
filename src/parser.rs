@@ -16,21 +16,45 @@ impl FifParser {
 
     pub fn parse_fif(&self, file: String) -> io::Result<()> {
         // open the fif file, wrap in bufreader
-        let fh = File::open(file).unwrap();
+        let fh = File::open(&file).unwrap();
+
+        let mut tags = self.collect_tags(fh);
+
+        
+        let fh = File::open(&file).unwrap();
+        
+        for _ in 0..3 {
+            
+            let tag = tags.pop().unwrap();
+            println!("{:?}", tag.read_data(&fh));
+        }
+        Ok(())
+    }
+
+    fn collect_tags(&self, fh: File) -> Vec<Tag> {
         let file_length = fh.metadata().unwrap().len();
+        let default_tag_def = TagDef::default();
+
         let mut reader = io::BufReader::new(fh);
         let mut buf = [0u8; 16];
 
+        let mut tags = vec![];
+
         // read tags sequentially until we find the end (no op) tag
         while let Ok(()) = reader.read_exact(&mut buf) {
-            let (tag, size) = parse_tag_from_bytes(&buf);
+            let (mut tag, size) = parse_tag_from_bytes(&buf);
 
-            let default_tag_def = TagDef::default();
+            tag.data = reader
+                .seek(io::SeekFrom::Current(0))
+                .expect("should be able to seek to current position");
+
             println!(
-                "{:?}",
-                &self.tag_dict.get(&tag.kind).unwrap_or(&default_tag_def)
+                "{:?}, {:?}",
+                &self.tag_dict.get(&tag.kind).unwrap_or(&default_tag_def),
+                tag
             );
-            reader.seek_relative(size)?;
+            tags.push(tag);
+            reader.seek_relative(size).unwrap();
         }
 
         let cur_pos = reader
@@ -41,7 +65,7 @@ impl FifParser {
             cur_pos, file_length
         );
 
-        Ok(())
+        tags
     }
 }
 
