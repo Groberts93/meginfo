@@ -1,82 +1,87 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek};
+use std::vec;
 
-use crate::tag::{Tag, TagDef};
+use crate::nomparser::tag_header;
+use crate::tag::{Data, Tag, TagDef};
 use csv::ReaderBuilder;
 
 pub struct FifParser {
-    tag_dict: HashMap<i32, TagDef>,
+    _tag_dict: HashMap<i32, TagDef>,
 }
 
 impl FifParser {
-    pub fn new(tag_dict: HashMap<i32, TagDef>) -> Self {
-        FifParser { tag_dict }
+    pub fn new(_tag_dict: HashMap<i32, TagDef>) -> Self {
+        FifParser { _tag_dict }
     }
 
     pub fn parse_fif(&self, file: String) -> io::Result<()> {
         // open the fif file, wrap in bufreader
         let fh = File::open(&file).unwrap();
 
-        let mut tags = self.collect_tags(fh);
+        let mut _tags = self.collect_tags(fh);
 
-        
-        let fh = File::open(&file).unwrap();
-        
-        for _ in 0..3 {
-            
-            let tag = tags.pop().unwrap();
-            println!("{:?}", tag.read_data(&fh));
-        }
+        let _fh = File::open(&file).unwrap();
+
         Ok(())
     }
 
     fn collect_tags(&self, fh: File) -> Vec<Tag> {
         let file_length = fh.metadata().unwrap().len();
-        let default_tag_def = TagDef::default();
 
-        let mut reader = io::BufReader::new(fh);
-        let mut buf = [0u8; 16];
+        const BUFFER_SIZE: usize = 8192;
 
+        let mut reader = io::BufReader::with_capacity(BUFFER_SIZE, fh);
+        let mut header_buf = [0u8; 16];
         let mut tags = vec![];
 
-        // read tags sequentially until we find the end (no op) tag
-        while let Ok(()) = reader.read_exact(&mut buf) {
-            let (mut tag, size) = parse_tag_from_bytes(&buf);
+        let mut position = 0u64;
 
-            tag.data = reader
-                .seek(io::SeekFrom::Current(0))
-                .expect("should be able to seek to current position");
+        while let Ok(()) = reader.read_exact(&mut header_buf) {
+            let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
+            position += 16;
 
-            println!(
-                "{:?}, {:?}",
-                &self.tag_dict.get(&tag.kind).unwrap_or(&default_tag_def),
-                tag
-            );
+            let tag = if size > 30 {
+                reader.seek_relative(size as i64).unwrap();
+                Tag {
+                    code: tag_header.code,
+                    dtype: tag_header.dtype,
+                    data: Data::InFile {
+                        start: position,
+                        size: size,
+                    },
+                }
+            } else {
+                let mut data_buf = vec![0; size as usize];
+                reader.read_exact(&mut data_buf).unwrap();
+                Tag {
+                    code: tag_header.code,
+                    dtype: tag_header.dtype,
+                    data: Data::Slice(data_buf),
+                }
+            };
+
+            position += size;
+
             tags.push(tag);
-            reader.seek_relative(size).unwrap();
+        }
+
+        for tag in &tags {
+            println!("{:?}", tag);
         }
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
             .expect("should be able to seek to current position");
+
         println!(
-            "Finished reading, cursor at {} bytes, file is {} bytes long",
-            cur_pos, file_length
+            "Finished reading, cursor at {} bytes (tracked {}), file is {} bytes long",
+            cur_pos, position, file_length
         );
 
         tags
     }
-}
-
-fn parse_tag_from_bytes(bytes: &[u8; 16]) -> (Tag, i64) {
-    let mut ints = [0i32; 4];
-
-    for (ii, chunk) in bytes.chunks_exact(4).enumerate() {
-        let value = i32::from_be_bytes(chunk.try_into().unwrap());
-        ints[ii] = value;
-    }
-    (Tag::new(&ints), ints[2].try_into().unwrap())
 }
 
 pub fn read_tag_dict() -> HashMap<i32, TagDef> {

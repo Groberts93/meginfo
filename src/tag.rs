@@ -1,28 +1,27 @@
 use serde::Deserialize;
-use std::fs::File;
-use std::io::{self, BufReader, Read, Seek};
 
-use crate::{primitive, primitive::Primitive};
+// the tag header struct, corresponds exactly to the 16 byte headers in the file
+#[derive(Debug)]
+pub struct TagHeader {
+    pub code: i32,
+    pub dtype: i32,
+    pub size: i32,
+    pub next: i32,
+}
+
+// data for a tag, either owns the actual data (for small data) or data position in the file
+// (for large data that requires deferred reading)
+#[derive(Debug)]
+pub enum Data {
+    Slice(Vec<u8>),
+    InFile { start: u64, size: u64 },
+}
 
 #[derive(Debug)]
 pub struct Tag {
-    pub kind: i32, // DictionaryTags.txt
-    type_: u8,     // DictionaryTypes.txt
-    size: i32,     // size in bytes
-    next: i32,     // offset from start of file to next tag if > 0
-    pub data: u64, // data location from start of file
-}
-
-impl Tag {
-    pub fn new(ints: &[i32; 4]) -> Self {
-        Tag {
-            kind: ints[0],
-            type_: ints[1] as u8,
-            size: ints[2],
-            next: ints[3],
-            data: 0,
-        }
-    }
+    pub code: i32,
+    pub dtype: i32,
+    pub data: Data,
 }
 
 #[derive(Debug, Deserialize)]
@@ -43,16 +42,5 @@ impl Default for TagDef {
             unit: "unknown".to_string(),
             description: "Unrecognized tag".to_string(),
         }
-    }
-}
-
-impl Tag {
-    pub fn read_data(&self, fh: &File) -> Primitive {
-        let mut reader = BufReader::new(fh);
-        let mut buffer = vec![0; self.size as usize];
-
-        reader.read_exact(&mut buffer).unwrap();
-        let prim = primitive::parse_primitive(&buffer, self.type_);
-        prim
     }
 }
