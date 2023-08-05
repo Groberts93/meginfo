@@ -41,7 +41,7 @@ impl FifParser {
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
             position += 16;
-
+            
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
                 Tag::from_header_file_position(tag_header, position, size)
@@ -50,12 +50,12 @@ impl FifParser {
                 reader.read_exact(&mut data_buf).unwrap();
                 Tag::from_header_slice(tag_header, data_buf)
             };
-
+            
             position += size;
-
+            
             tags.push(tag);
         }
-
+        
         for tag in &tags {
             println!("{:?}", tag);
         }

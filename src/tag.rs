@@ -1,3 +1,4 @@
+use crate::nomparser::i32_many;
 use serde::Deserialize;
 
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
@@ -18,14 +19,22 @@ enum Data {
     Void,
     Byte(u8),
     Int16(i16),
-    Int32(i32),
+    Int32(Vec<i32>),
     Float(f32),
 }
+
 
 impl Data {
     pub fn from_slice(slice: Vec<u8>, dtype: i32) -> Self {
         let result = match dtype {
             0 => Data::Void,
+            3 => {
+                if let Ok(result) = i32_many(&slice) {
+                    Data::Int32(result.1)
+                } else {
+                    Data::Slice(slice)
+                }
+            }
             _ => Data::Slice(slice),
         };
 
@@ -45,7 +54,7 @@ impl Tag {
         Tag {
             code: header.code,
             dtype: header.dtype,
-            data: Data::Slice(slice),
+            data: Data::from_slice(slice, header.dtype),
         }
     }
 
