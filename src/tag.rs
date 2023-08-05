@@ -24,6 +24,16 @@ pub struct Tag {
     pub data: Data,
 }
 
+impl Tag {
+    pub fn from_header(header: TagHeader, data: Data) -> Self {
+        Tag {
+            code: header.code,
+            dtype: header.dtype,
+            data,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct TagDef {
     pub code: i32,

@@ -44,22 +44,11 @@ impl FifParser {
 
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
-                Tag {
-                    code: tag_header.code,
-                    dtype: tag_header.dtype,
-                    data: Data::InFile {
-                        start: position,
-                        size: size,
-                    },
-                }
+                Tag::from_header(tag_header, Data::InFile { start: position, size: size })
             } else {
                 let mut data_buf = vec![0; size as usize];
                 reader.read_exact(&mut data_buf).unwrap();
-                Tag {
-                    code: tag_header.code,
-                    dtype: tag_header.dtype,
-                    data: Data::Slice(data_buf),
-                }
+                Tag::from_header(tag_header, Data::Slice(data_buf))
             };
 
             position += size;
