@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::vec;
@@ -38,9 +38,13 @@ impl FifParser {
 
         let mut position = 0u64;
 
+        let mut dtypes = HashSet::new();
+
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
             position += 16;
+
+            dtypes.insert(tag_header.dtype);
             
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
@@ -56,6 +60,11 @@ impl FifParser {
             tags.push(tag);
         }
         
+        // let mut dtypes: Vec<i32> = dtypes.into_iter().collect();
+        // dtypes.sort();
+        // println!("{:?}", dtypes);
+
+
         for tag in &tags {
             println!("{:?}", tag);
         }

@@ -1,4 +1,4 @@
-use crate::nomparser::i32_many;
+use crate::nomparser::{f32_many, i32_many, string};
 use serde::Deserialize;
 
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
@@ -17,28 +17,31 @@ enum Data {
     Slice(Vec<u8>),
     InFile { start: u64, size: u64 },
     Void,
-    Byte(u8),
-    Int16(i16),
     Int32(Vec<i32>),
-    Float(f32),
+    Float(Vec<f32>),
+    JulianDate(Vec<i32>),
+    String(String),
+    ChInfoStruct(Vec<u8>),
+    IdStruct(Vec<u8>),
+    DigPointStruct(Vec<u8>),
+    CoordTransStruct(Vec<u8>),
 }
 
-
 impl Data {
+    
     pub fn from_slice(slice: Vec<u8>, dtype: i32) -> Self {
-        let result = match dtype {
+        match dtype {
             0 => Data::Void,
-            3 => {
-                if let Ok(result) = i32_many(&slice) {
-                    Data::Int32(result.1)
-                } else {
-                    Data::Slice(slice)
-                }
-            }
+            3 => Data::Int32(i32_many(&slice).unwrap().1),
+            4 => Data::Float(f32_many(&slice).unwrap().1),
+            6 => Data::JulianDate(i32_many(&slice).unwrap().1),
+            10 => Data::String(string(slice)),
+            30 => Data::ChInfoStruct(slice),
+            31 => Data::IdStruct(slice),
+            33 => Data::DigPointStruct(slice),
+            35 => Data::CoordTransStruct(slice),
             _ => Data::Slice(slice),
-        };
-
-        result
+        }
     }
 }
 
