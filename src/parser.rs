@@ -4,7 +4,7 @@ use std::io::{self, Read, Seek};
 use std::vec;
 
 use crate::nomparser::tag_header;
-use crate::tag::{Data, Tag, TagDef};
+use crate::tag::{Tag, TagDef};
 use csv::ReaderBuilder;
 
 pub struct FifParser {
@@ -44,11 +44,11 @@ impl FifParser {
 
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
-                Tag::from_header(tag_header, Data::InFile { start: position, size: size })
+                Tag::from_header_file_position(tag_header, position, size)
             } else {
                 let mut data_buf = vec![0; size as usize];
                 reader.read_exact(&mut data_buf).unwrap();
-                Tag::from_header(tag_header, Data::Slice(data_buf))
+                Tag::from_header_slice(tag_header, data_buf)
             };
 
             position += size;
