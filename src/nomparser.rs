@@ -1,6 +1,6 @@
-use nom::number::complete::{be_i32, be_f32};
-use nom::{sequence, IResult};
 use nom::multi;
+use nom::number::complete::{be_f32, be_i32};
+use nom::{sequence, IResult};
 
 use crate::tag::TagHeader;
 

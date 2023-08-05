@@ -28,7 +28,6 @@ enum Data {
 }
 
 impl Data {
-    
     pub fn from_slice(slice: Vec<u8>, dtype: i32) -> Self {
         match dtype {
             0 => Data::Void,

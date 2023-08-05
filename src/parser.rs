@@ -45,7 +45,7 @@ impl FifParser {
             position += 16;
 
             dtypes.insert(tag_header.dtype);
-            
+
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
                 Tag::from_header_file_position(tag_header, position, size)
@@ -54,16 +54,15 @@ impl FifParser {
                 reader.read_exact(&mut data_buf).unwrap();
                 Tag::from_header_slice(tag_header, data_buf)
             };
-            
+
             position += size;
-            
+
             tags.push(tag);
         }
-        
+
         // let mut dtypes: Vec<i32> = dtypes.into_iter().collect();
         // dtypes.sort();
         // println!("{:?}", dtypes);
-
 
         for tag in &tags {
             println!("{:?}", tag);
