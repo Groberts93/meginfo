@@ -47,7 +47,6 @@ impl Data {
 #[derive(Debug)]
 pub struct Tag {
     pub code: i32,
-    pub dtype: i32,
     data: Data,
 }
 
@@ -55,7 +54,6 @@ impl Tag {
     pub fn from_header_slice(header: TagHeader, slice: Vec<u8>) -> Self {
         Tag {
             code: header.code,
-            dtype: header.dtype,
             data: Data::from_slice(slice, header.dtype),
         }
     }
@@ -63,7 +61,6 @@ impl Tag {
     pub fn from_header_file_position(header: TagHeader, start: u64, size: u64) -> Self {
         Tag {
             code: header.code,
-            dtype: header.dtype,
             data: Data::InFile {
                 start: start,
                 size: size,
