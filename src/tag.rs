@@ -10,6 +10,25 @@ pub struct TagHeader {
     pub next: i32,
 }
 
+#[derive(Debug)]
+enum Kind {
+    BlockStart,
+    BlockEnd,
+    ChInfo,
+    Code(i32),
+}
+
+impl Kind {
+    pub fn from_code(code: i32) -> Self {
+        match code {
+            104 => Kind::BlockStart,
+            105 => Kind::BlockEnd,
+            203 => Kind::ChInfo,
+            _ => Kind::Code(code),
+        }
+    }
+}
+
 // data for a tag, either owns the actual data (for small data) or data position in the file
 // (for large data that requires deferred reading)
 #[derive(Debug)]
@@ -46,21 +65,21 @@ impl Data {
 
 #[derive(Debug)]
 pub struct Tag {
-    pub code: i32,
+    kind: Kind,
     data: Data,
 }
 
 impl Tag {
     pub fn from_header_slice(header: TagHeader, slice: Vec<u8>) -> Self {
         Tag {
-            code: header.code,
+            kind: Kind::from_code(header.code),
             data: Data::from_slice(slice, header.dtype),
         }
     }
 
     pub fn from_header_file_position(header: TagHeader, start: u64, size: u64) -> Self {
         Tag {
-            code: header.code,
+            kind: Kind::from_code(header.code),
             data: Data::InFile {
                 start: start,
                 size: size,

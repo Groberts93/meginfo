@@ -8,12 +8,12 @@ use crate::tag::{Tag, TagDef};
 use csv::ReaderBuilder;
 
 pub struct FifParser {
-    _tag_dict: HashMap<i32, TagDef>,
+    tag_dict: HashMap<i32, TagDef>,
 }
 
 impl FifParser {
-    pub fn new(_tag_dict: HashMap<i32, TagDef>) -> Self {
-        FifParser { _tag_dict }
+    pub fn new(tag_dict: HashMap<i32, TagDef>) -> Self {
+        FifParser { tag_dict }
     }
 
     pub fn parse_fif(&self, file: String) -> io::Result<()> {
@@ -38,13 +38,16 @@ impl FifParser {
 
         let mut position = 0u64;
 
-        let mut dtypes = HashSet::new();
+        let mut codes = HashMap::new();
 
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
             position += 16;
 
-            dtypes.insert(tag_header.dtype);
+            codes
+                .entry(tag_header.code)
+                .and_modify(|x| *x += 1)
+                .or_insert(1);
 
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
@@ -60,13 +63,14 @@ impl FifParser {
             tags.push(tag);
         }
 
-        // let mut dtypes: Vec<i32> = dtypes.into_iter().collect();
-        // dtypes.sort();
-        // println!("{:?}", dtypes);
-
         for tag in &tags {
             println!("{:?}", tag);
         }
+
+        let mut codes: Vec<(i32, i32)> = codes.into_iter().collect();
+        codes.sort_by_key(|k| -k.1);
+        
+        println!("{:?}", codes);
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
