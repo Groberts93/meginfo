@@ -1,5 +1,6 @@
 use crate::nomparser::{f32_many, i32_many, string};
 use serde::Deserialize;
+use crate::enums::{Kind, Block};
 
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
 #[derive(Debug)]
@@ -8,25 +9,6 @@ pub struct TagHeader {
     pub dtype: i32,
     pub size: i32,
     pub next: i32,
-}
-
-#[derive(Debug)]
-enum Kind {
-    BlockStart,
-    BlockEnd,
-    ChInfo,
-    Code(i32),
-}
-
-impl Kind {
-    pub fn from_code(code: i32) -> Self {
-        match code {
-            104 => Kind::BlockStart,
-            105 => Kind::BlockEnd,
-            203 => Kind::ChInfo,
-            _ => Kind::Code(code),
-        }
-    }
 }
 
 // data for a tag, either owns the actual data (for small data) or data position in the file
