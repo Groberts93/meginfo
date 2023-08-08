@@ -13,8 +13,8 @@ pub struct TagHeader {
 
 // data for a tag, either owns the actual data (for small data) or data position in the file
 // (for large data that requires deferred reading)
-#[derive(Debug)]
-enum Data {
+#[derive(Debug, PartialEq, Clone)]
+pub enum Data {
     Slice(Vec<u8>),
     InFile { start: u64, size: u64 },
     Void,

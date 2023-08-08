@@ -2,6 +2,7 @@ mod nomparser;
 mod parser;
 mod tag;
 mod enums;
+mod tree;
 
 use parser::{read_tag_dict, FifParser};
 use std::error::Error;
