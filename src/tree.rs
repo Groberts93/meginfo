@@ -2,7 +2,7 @@ use crate::tag::{Data, Tag};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Tree {
-    nodes: Option<Vec<Tree>>,
+    nodes: Option<Vec<Tree>>, // can we just get rid of the option?
     data: Data,
 }
 
@@ -121,15 +121,13 @@ mod tests {
         }
         assert_eq!(Tree::count_nodes(&root), count);
 
-        let child_node = &mut root.nodes.as_mut().unwrap()[1];
+        let child_node_second = &mut root.nodes.as_mut().unwrap()[0].nodes.as_mut().unwrap()[0];
 
         for _ in 0..2 {
-            child_node.add_node(Tree::new());
+            child_node_second.add_node(Tree::new());
             count += 1;
         }
 
         assert_eq!(Tree::count_nodes(&root), count);
-
-        //TODO: add test case for depth 2
     }
 }
