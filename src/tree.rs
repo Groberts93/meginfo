@@ -1,31 +1,31 @@
 use crate::tag::{Data, Tag};
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Tree {
-    nodes: Vec<Tree>,
-    data: Data,
+pub struct Tree<T> {
+    nodes: Vec<Tree<T>>,
+    data: T,
 }
 
-impl Tree {
+impl<T: Default> Tree<T> {
     pub fn new() -> Self {
         Tree {
             nodes: vec![],
-            data: Data::Void,
+            data: T::default(),
         }
     }
 
-    pub fn with_data(data: Data) -> Self {
+    pub fn with_data(data: T) -> Self {
         Tree {
             nodes: vec![],
             data,
         }
     }
 
-    pub fn add_node(&mut self, tree: Tree) {
+    pub fn add_node(&mut self, tree: Tree<T>) {
         self.nodes.push(tree);
     }
 
-    pub fn count_nodes(tree: &Tree) -> usize {
+    pub fn count_nodes(tree: &Tree<T>) -> usize {
         match tree.nodes.len() {
             0 => 1,
             _ => tree.nodes.iter().fold(1, |c, t| c + Self::count_nodes(t)),
@@ -53,7 +53,7 @@ mod tests {
     fn can_add_node() {
         // create a root node, then add another node as a child
         let mut root = Tree::new();
-        let node = Tree::with_data(Data::Float(vec![0.5]));
+        let node = Tree::with_data(0.5f32);
 
         root.add_node(node.clone());
 
@@ -62,9 +62,9 @@ mod tests {
             Tree {
                 nodes: vec![Tree {
                     nodes: vec![],
-                    data: Data::Float(vec![0.5])
+                    data: 0.5
                 }],
-                data: Data::Void
+                data: 0.0
             }
         );
     }
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn can_count_tree_nodes() {
         // create a new tree, add nodes, and check the count is correct
-        let mut root = Tree::new();
+        let mut root: Tree<Tag> = Tree::new();
         let mut count = 1;  // the root node is the only node in the tree
         assert_eq!(Tree::count_nodes(&root), count);
 

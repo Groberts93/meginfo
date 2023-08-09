@@ -13,11 +13,12 @@ pub struct TagHeader {
 
 // data for a tag, either owns the actual data (for small data) or data position in the file
 // (for large data that requires deferred reading)
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub enum Data {
+    #[default]
+    Void,
     Slice(Vec<u8>),
     InFile { start: u64, size: u64 },
-    Void,
     Int32(Vec<i32>),
     Float(Vec<f32>),
     JulianDate(Vec<i32>),
@@ -45,7 +46,7 @@ impl Data {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Tag {
     kind: Kind,
     data: Data,

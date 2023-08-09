@@ -3,8 +3,9 @@
 // tag code, see fiff/tags.tsv
 // is currently missing the MNE-specific tags.
 // carries a catchall Code(i32) variant to hold any codes not recognised here
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum Kind {
+    #[default]
     FileId,
     DirPointer,
     Dir,
