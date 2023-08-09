@@ -6,7 +6,7 @@ pub struct Tree<T> {
     data: T,
 }
 
-impl<T: Default> Tree<T> {
+impl<T: Default + PartialEq> Tree<T> {
     pub fn new() -> Self {
         Tree {
             nodes: vec![],
@@ -29,6 +29,16 @@ impl<T: Default> Tree<T> {
         match tree.nodes.len() {
             0 => 1,
             _ => tree.nodes.iter().fold(1, |c, t| c + Self::count_nodes(t)),
+        }
+    }
+
+    pub fn find_node<'a>(tree: &'a Tree<T>, data: &'a T) -> Option<&'a Tree<T>> {
+        if tree.data == *data {
+            Some(&tree)
+        } else if tree.nodes.len() > 0 {
+            tree.nodes.iter().find_map(|t| Self::find_node(t, &data))
+        } else {
+            None
         }
     }
 }
@@ -73,7 +83,7 @@ mod tests {
     fn can_count_tree_nodes() {
         // create a new tree, add nodes, and check the count is correct
         let mut root: Tree<Tag> = Tree::new();
-        let mut count = 1;  // the root node is the only node in the tree
+        let mut count = 1; // the root node is the only node in the tree
         assert_eq!(Tree::count_nodes(&root), count);
 
         for _ in 0..3 {
@@ -98,5 +108,21 @@ mod tests {
         }
 
         assert_eq!(Tree::count_nodes(&root), count);
+    }
+
+    #[test]
+    fn can_find_node() {
+        let mut root = Tree::new();
+
+        for ii in 0..3 {
+            root.add_node(Tree::with_data(ii));
+        }
+
+        for ii in 7..12 {
+            root.nodes[0].add_node(Tree::with_data(ii));
+        }
+
+        let target = Tree::find_node(&root, &7).unwrap();
+        assert_eq!(target.data, 7);
     }
 }

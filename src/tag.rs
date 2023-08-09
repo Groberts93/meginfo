@@ -46,7 +46,7 @@ impl Data {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Tag {
     kind: Kind,
     data: Data,
