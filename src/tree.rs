@@ -44,25 +44,37 @@ impl<T: Default + PartialEq + Display> Tree<T> {
         }
     }
 
-    fn write_children(depth: usize, tree: &Tree<T>) -> Vec<char> {
+    fn write_children(depth: usize, is_last_node: bool, tree: &Tree<T>) -> Vec<char> {
         let mut chars = vec![];
 
-        if depth > 0 {
-            chars.push('|');
-        }
-        for _ in 0..depth {
-            chars.push('―');
+        for ii in 0..=depth {
+            match depth - ii {
+                0 => {
+                    for char in tree.data.to_string().chars() {
+                        chars.push(char);
+                    }
+                }
+                1 => {
+                    match is_last_node {
+                        false => chars.push('├'),
+                        true => chars.push('└'),
+                    }
+                    chars.push('─');
+                }
+                _ => {
+                    chars.push('│');
+                    chars.push(' ');
+                }
+            }
         }
 
-        for char in tree.data.to_string().chars() {
-            chars.push(char);
-        }
-
-        let depth = depth + 1;
-
-        for node in tree.nodes.iter() {
+        for (ii, node) in tree.nodes.iter().enumerate() {
             chars.push('\n');
-            chars.append(&mut Self::write_children(depth, node));
+            chars.append(&mut Self::write_children(
+                depth + 1,
+                ii == tree.nodes.len() - 1,
+                node,
+            ));
         }
 
         chars
@@ -71,12 +83,7 @@ impl<T: Default + PartialEq + Display> Tree<T> {
 
 impl<T: Default + PartialEq + Display> Display for Tree<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf = Tree::write_children(0, &self);
-
-        // vec!['0', '\n'];
-
-        // buf =
-
+        let buf = Tree::write_children(0, false, &self);
         let buf: String = buf.iter().collect();
         write!(f, "{}", buf)
     }
@@ -159,6 +166,10 @@ mod tests {
 
         for ii in 7..12 {
             root.nodes[0].add_node(Tree::with_data(ii));
+        }
+
+        for ii in 0..3 {
+            root.nodes[0].nodes[3].add_node(Tree::with_data(ii));
         }
 
         let target = Tree::find_node(&root, &7).unwrap();
