@@ -69,7 +69,7 @@ impl FifParser {
 
         let mut codes: Vec<(i32, i32)> = codes.into_iter().collect();
         codes.sort_by_key(|k| -k.1);
-        
+
         println!("{:?}", codes);
 
         let cur_pos = reader

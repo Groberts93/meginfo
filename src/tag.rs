@@ -1,6 +1,8 @@
+use std::fmt::Display;
+
+use crate::enums::{Block, Kind};
 use crate::nomparser::{f32_many, i32_many, string};
 use serde::Deserialize;
-use crate::enums::{Kind, Block};
 
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
 #[derive(Debug)]
@@ -18,7 +20,10 @@ pub enum Data {
     #[default]
     Void,
     Slice(Vec<u8>),
-    InFile { start: u64, size: u64 },
+    InFile {
+        start: u64,
+        size: u64,
+    },
     Int32(Vec<i32>),
     Float(Vec<f32>),
     JulianDate(Vec<i32>),
@@ -46,6 +51,12 @@ impl Data {
     }
 }
 
+impl Display for Data {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Debug, PartialEq, Default)]
 pub struct Tag {
     kind: Kind,
@@ -68,6 +79,12 @@ impl Tag {
                 size: size,
             },
         }
+    }
+}
+
+impl Display for Tag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

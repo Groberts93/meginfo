@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::tag::{Data, Tag};
 
 #[derive(Debug, PartialEq, Clone)]
@@ -6,7 +8,7 @@ pub struct Tree<T> {
     data: T,
 }
 
-impl<T: Default + PartialEq> Tree<T> {
+impl<T: Default + PartialEq + Display> Tree<T> {
     pub fn new() -> Self {
         Tree {
             nodes: vec![],
@@ -40,6 +42,44 @@ impl<T: Default + PartialEq> Tree<T> {
         } else {
             None
         }
+    }
+
+    fn write_children(depth: usize, tree: &Tree<T>) -> Vec<char> {
+        let mut chars = vec![];
+
+        if depth > 0 {
+            chars.push('|');
+        }
+        for _ in 0..depth {
+            chars.push('―');
+        }
+
+        for char in tree.data.to_string().chars() {
+            chars.push(char);
+        }
+
+        let depth = depth + 1;
+        println!("depth: {depth}");
+
+        for (iin, node) in tree.nodes.iter().enumerate() {
+            chars.push('\n');
+            chars.append(&mut Self::write_children(depth, node));
+        }
+
+        chars
+    }
+}
+
+impl<T: Default + PartialEq + Display> Display for Tree<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let buf = Tree::write_children(0, &self);
+
+        // vec!['0', '\n'];
+
+        // buf =
+
+        let buf: String = buf.iter().collect();
+        write!(f, "{}", buf)
     }
 }
 
@@ -123,6 +163,8 @@ mod tests {
         }
 
         let target = Tree::find_node(&root, &7).unwrap();
+
+        println!("{root}");
         assert_eq!(target.data, 7);
     }
 }
