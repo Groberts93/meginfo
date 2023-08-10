@@ -59,9 +59,8 @@ impl<T: Default + PartialEq + Display> Tree<T> {
         }
 
         let depth = depth + 1;
-        println!("depth: {depth}");
 
-        for (iin, node) in tree.nodes.iter().enumerate() {
+        for node in tree.nodes.iter() {
             chars.push('\n');
             chars.append(&mut Self::write_children(depth, node));
         }
