@@ -1,4 +1,5 @@
 mod enums;
+mod graph;
 mod nomparser;
 mod parser;
 mod tag;
