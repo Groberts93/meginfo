@@ -85,7 +85,7 @@ impl FifParser {
             }
         }
 
-        println!("{}", tree);
+        // println!("{}", tree);
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
