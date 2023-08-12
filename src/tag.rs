@@ -108,3 +108,21 @@ impl Default for TagDef {
         }
     }
 }
+
+#[derive(Debug, PartialEq)]
+pub enum FiffNode {
+    Block(Block),
+    Tag(Tag),
+}
+
+impl Default for FiffNode {
+    fn default() -> Self {
+        FiffNode::Block(Block::Root)
+    }
+}
+
+impl Display for FiffNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}

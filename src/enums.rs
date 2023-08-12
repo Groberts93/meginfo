@@ -473,6 +473,7 @@ impl Kind {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Block {
     Root,
     Meas,

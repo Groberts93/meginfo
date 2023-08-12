@@ -71,21 +71,28 @@ impl FifParser {
         let mut curr = tree.root;
 
         for tag in tags {
-            if tag.kind == Kind::BlockStart {
-                stack.push(curr);
-                let child = tree.add_child(tag);
-                tree.move_to(child);
-                curr = child;
-            } else if tag.kind == Kind::BlockEnd {
-                tree.add_child(tag);
-                let prev = stack.pop().unwrap();
-                tree.move_to(prev);
-            } else {
-                tree.add_child(tag);
+
+            match tag.kind {
+                Kind::BlockStart => {
+                    stack.push(curr);
+                    let child = tree.add_child(tag);
+                    tree.move_to(child);
+                    curr = child;
+                },
+                Kind::BlockEnd => {
+                    tree.add_child(tag);
+                    let prev = stack.pop().unwrap();
+                    tree.move_to(prev);
+
+                },
+                _ => {
+                    tree.add_child(tag);
+
+                },
             }
         }
 
-        // println!("{}", tree);
+        println!("{}", tree);
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
