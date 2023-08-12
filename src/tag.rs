@@ -59,7 +59,7 @@ impl Display for Data {
 
 #[derive(Debug, PartialEq, Default)]
 pub struct Tag {
-    kind: Kind,
+    pub kind: Kind,
     data: Data,
 }
 

@@ -3,6 +3,9 @@ use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::vec;
 
+use crate::enums::Kind;
+use crate::graph::Tree;
+
 use crate::nomparser::tag_header;
 use crate::tag::{Tag, TagDef};
 use csv::ReaderBuilder;
@@ -63,14 +66,26 @@ impl FifParser {
             tags.push(tag);
         }
 
-        for tag in &tags {
-            println!("{:?}", tag);
+        let mut tree = Tree::new();
+        let mut stack = vec![];
+        let mut curr = tree.root;
+
+        for tag in tags {
+            if tag.kind == Kind::BlockStart {
+                stack.push(curr);
+                let child = tree.add_child(tag);
+                tree.move_to(child);
+                curr = child;
+            } else if tag.kind == Kind::BlockEnd {
+                tree.add_child(tag);
+                let prev = stack.pop().unwrap();
+                tree.move_to(prev);
+            } else {
+                tree.add_child(tag);
+            }
         }
 
-        let mut codes: Vec<(i32, i32)> = codes.into_iter().collect();
-        codes.sort_by_key(|k| -k.1);
-
-        println!("{:?}", codes);
+        println!("{}", tree);
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
@@ -81,7 +96,7 @@ impl FifParser {
             cur_pos, position, file_length
         );
 
-        tags
+        vec![]
     }
 }
 
