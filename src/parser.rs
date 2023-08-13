@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, Read, Seek};
@@ -19,9 +20,9 @@ impl FifParser {
         FifParser { tag_dict }
     }
 
-    pub fn parse_fif(&self, file: String) -> io::Result<()> {
+    pub fn parse_fif(&self, file: String) -> Result<()> {
         // open the fif file, wrap in bufreader
-        let fh = File::open(&file).unwrap();
+        let fh = File::open(&file).with_context(|| format!("No file found at {}", &file))?;
 
         let mut _tags = self.collect_tags(fh);
 
@@ -71,24 +72,21 @@ impl FifParser {
         let mut curr = tree.root;
 
         for tag in tags {
-
             match tag.kind {
                 Kind::BlockStart => {
                     stack.push(curr);
                     let child = tree.add_child(tag);
                     tree.move_to(child);
                     curr = child;
-                },
+                }
                 Kind::BlockEnd => {
                     tree.add_child(tag);
                     let prev = stack.pop().unwrap();
                     tree.move_to(prev);
-
-                },
+                }
                 _ => {
                     tree.add_child(tag);
-
-                },
+                }
             }
         }
 
