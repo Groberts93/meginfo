@@ -1,9 +1,12 @@
+//! # meginfo is a crate for reading neuromag/MEGIN/fif files.
+//! 
+//! 
+
 pub mod config;
-mod enums;
-mod graph;
-mod nomparser;
-mod parser;
-mod tag;
+pub mod enums;
+pub mod graph;
+pub mod parser;
+pub mod tag;
 
 use config::Config;
 use parser::{read_tag_dict, FifParser};

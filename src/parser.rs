@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::vec;
@@ -7,10 +7,12 @@ use std::vec;
 use crate::enums::Kind;
 use crate::graph::Tree;
 
-use crate::nomparser::tag_header;
-use crate::tag::{Tag, TagDef};
+use crate::tag::{tag_header, Tag, TagDef};
 use csv::ReaderBuilder;
 
+// contains main file reading and parsing loop
+
+// is this a comment?
 pub struct FifParser {
     tag_dict: HashMap<i32, TagDef>,
 }
@@ -106,6 +108,7 @@ impl FifParser {
 }
 
 pub fn read_tag_dict() -> HashMap<i32, TagDef> {
+    //! how bout this?
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
         .from_path("fiff/tags.tsv")

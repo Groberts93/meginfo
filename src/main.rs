@@ -1,3 +1,11 @@
+//! This is a binary for parsing and querying FIF format neuroimaging data.
+//! 
+//! # Usage
+//! 
+//! `meginfo [file_1]` 
+//! 
+//! 
+
 use meginfo::{config::Config, run};
 use std::env;
 use std::error::Error;

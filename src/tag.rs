@@ -1,9 +1,57 @@
+//! Tag
+//! 
+//! This is an abstraction to contain tags read from a fif file.
+//! Each tag comprises a header and a data block.
+//! 
+//! The header has a fixed size of 16 bytes, while the data block is variable-size.
+//! Each header is decoded as four i32 values:
+//! 
+//! code: an enum which defines the "kind" of tag, see fiff/tags.tsv
+//! dtype: an enum which defines the format of the data block, see fiff/primitives.tsv
+//! size: the size in bytes of the ensuing data block
+//! next: supposedly a file pointer to the next block, but typically set to 0 and ignored
+//! 
+//! Contains code to parse these from u8 slices using nomparser.
+//! 
+
+use nom::multi;
+use nom::number::complete::{be_f32, be_i32};
+use nom::{sequence, IResult};
 use std::fmt::Display;
 
 use crate::enums::{Block, Kind};
-use crate::nomparser::{f32_many, i32_many, string};
 use serde::Deserialize;
 
+#[derive(Debug, PartialEq, Default)]
+pub struct Tag {
+    pub kind: Kind,
+    data: Data,
+}
+
+impl Tag {
+    pub fn from_header_slice(header: TagHeader, slice: Vec<u8>) -> Self {
+        Tag {
+            kind: Kind::from_code(header.code),
+            data: Data::from_slice(slice, header.dtype),
+        }
+    }
+
+    pub fn from_header_file_position(header: TagHeader, start: u64, size: u64) -> Self {
+        Tag {
+            kind: Kind::from_code(header.code),
+            data: Data::InFile {
+                start: start,
+                size: size,
+            },
+        }
+    }
+}
+
+impl Display for Tag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
 #[derive(Debug)]
 pub struct TagHeader {
@@ -57,37 +105,6 @@ impl Display for Data {
     }
 }
 
-#[derive(Debug, PartialEq, Default)]
-pub struct Tag {
-    pub kind: Kind,
-    data: Data,
-}
-
-impl Tag {
-    pub fn from_header_slice(header: TagHeader, slice: Vec<u8>) -> Self {
-        Tag {
-            kind: Kind::from_code(header.code),
-            data: Data::from_slice(slice, header.dtype),
-        }
-    }
-
-    pub fn from_header_file_position(header: TagHeader, start: u64, size: u64) -> Self {
-        Tag {
-            kind: Kind::from_code(header.code),
-            data: Data::InFile {
-                start: start,
-                size: size,
-            },
-        }
-    }
-}
-
-impl Display for Tag {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct TagDef {
     pub code: i32,
@@ -125,4 +142,34 @@ impl Display for FiffNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
+}
+
+pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, TagHeader)> {
+    let (input, (code, dtype, size, next)) =
+        sequence::tuple((be_i32, be_i32, be_i32, be_i32))(input)?;
+
+    Ok((
+        input,
+        (
+            size as u64,
+            TagHeader {
+                code,
+                dtype,
+                size,
+                next,
+            },
+        ),
+    ))
+}
+
+pub fn i32_many(input: &[u8]) -> IResult<&[u8], Vec<i32>> {
+    multi::many1(be_i32)(input)
+}
+
+pub fn f32_many(input: &[u8]) -> IResult<&[u8], Vec<f32>> {
+    multi::many1(be_f32)(input)
+}
+
+pub fn string(input: Vec<u8>) -> String {
+    String::from_utf8(input).unwrap()
 }
