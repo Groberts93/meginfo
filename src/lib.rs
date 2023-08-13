@@ -4,7 +4,6 @@ mod graph;
 mod nomparser;
 mod parser;
 mod tag;
-mod tree;
 
 use config::Config;
 use parser::{read_tag_dict, FifParser};
