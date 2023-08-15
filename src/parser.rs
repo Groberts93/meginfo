@@ -4,13 +4,14 @@ use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::vec;
 
-use crate::enums::Kind;
+use crate::enums::TagKind;
 use crate::graph::Tree;
 
-use crate::tag::{tag_header, Tag, TagDef};
+use crate::tag::{tag_header, Tag, TagDef, Block};
 use csv::ReaderBuilder;
 
 // contains main file reading and parsing loop
+
 
 // is this a comment?
 pub struct FifParser {
@@ -75,13 +76,13 @@ impl FifParser {
 
         for tag in tags {
             match tag.kind {
-                Kind::BlockStart => {
+                TagKind::BlockStart => {
                     stack.push(curr);
                     let child = tree.add_child(tag);
                     tree.move_to(child);
                     curr = child;
                 }
-                Kind::BlockEnd => {
+                TagKind::BlockEnd => {
                     tree.move_to(stack.pop().unwrap());
                 }
                 _ => {

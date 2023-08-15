@@ -19,26 +19,46 @@ use nom::number::complete::{be_f32, be_i32};
 use nom::{sequence, IResult};
 use std::fmt::Display;
 
-use crate::enums::{Block, Kind};
+use crate::enums::{BlockKind, TagKind};
 use serde::Deserialize;
+
+
+#[derive(Debug, PartialEq)]
+enum FiffNode {
+    Tag(Tag),
+    Block(Block)
+}
+
+
+impl Display for FiffNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+
+#[derive(Debug, PartialEq, Default)]
+pub struct Block {
+    pub kind: BlockKind,
+}
 
 #[derive(Debug, PartialEq, Default)]
 pub struct Tag {
-    pub kind: Kind,
+    pub kind: TagKind,
     data: Data,
 }
 
 impl Tag {
-    pub fn from_header_slice(header: TagHeader, slice: Vec<u8>) -> Self {
+    pub fn from_header_slice(header: Header, slice: Vec<u8>) -> Self {
         Tag {
-            kind: Kind::from_code(header.code),
+            kind: TagKind::from_code(header.code),
             data: Data::from_slice(slice, header.dtype),
         }
     }
 
-    pub fn from_header_file_position(header: TagHeader, start: u64, size: u64) -> Self {
+    pub fn from_header_file_position(header: Header, start: u64, size: u64) -> Self {
         Tag {
-            kind: Kind::from_code(header.code),
+            kind: TagKind::from_code(header.code),
             data: Data::InFile {
                 start: start,
                 size: size,
@@ -54,7 +74,7 @@ impl Display for Tag {
 }
 // the tag header struct, corresponds exactly to the 16 byte headers in the file
 #[derive(Debug)]
-pub struct TagHeader {
+pub struct Header {
     pub code: i32,
     pub dtype: i32,
     pub size: i32,
@@ -126,25 +146,8 @@ impl Default for TagDef {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum FiffNode {
-    Block(Block),
-    Tag(Tag),
-}
 
-impl Default for FiffNode {
-    fn default() -> Self {
-        FiffNode::Block(Block::Root)
-    }
-}
-
-impl Display for FiffNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, TagHeader)> {
+pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, Header)> {
     let (input, (code, dtype, size, next)) =
         sequence::tuple((be_i32, be_i32, be_i32, be_i32))(input)?;
 
@@ -152,7 +155,7 @@ pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, TagHeader)> {
         input,
         (
             size as u64,
-            TagHeader {
+            Header {
                 code,
                 dtype,
                 size,
