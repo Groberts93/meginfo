@@ -4,10 +4,13 @@ use std::fmt::Display;
 use petgraph::data::Build;
 use petgraph::dot::{Config, Dot};
 use petgraph::stable_graph::{EdgeIndex, NodeIndex, StableGraph, StableUnGraph};
+use petgraph::visit::IntoNeighbors;
 use petgraph::{Directed, Graph, Undirected};
 
-#[derive(Debug, Clone, Default)]
-pub struct Tree<T> {
+use termtree;
+
+#[derive(Debug, Clone)]
+pub struct Tree<T: Display> {
     graph: StableGraph<T, ()>,
     current: NodeIndex,
     pub root: NodeIndex,
@@ -26,6 +29,18 @@ where
             current: root,
             root: root,
         }
+    }
+
+    fn create_view(&self, node: NodeIndex) -> termtree::Tree<String> {
+        let mut tree = termtree::Tree::new(self.graph[node].to_string());
+
+        let children: Vec<NodeIndex> = self.graph.neighbors(node).collect();
+
+        for child in children.iter().rev() {
+            tree.push(self.create_view(*child));
+        }
+
+        tree
     }
 
     pub fn add_child(&mut self, child: T) -> NodeIndex {
@@ -47,90 +62,11 @@ where
     pub fn edge_count(&self) -> usize {
         self.graph.edge_count()
     }
-
-    fn display_node_at_depth(node: &T, depth: usize) -> Vec<char> {
-        let mut chars = vec![];
-        chars.push('\n');
-
-        for ii in 0..=depth {
-            match depth - ii {
-                0 => {
-                    for char in node.to_string().chars() {
-                        chars.push(char);
-                    }
-                }
-                1 => {
-                    // match is_last_node {
-                    //     false => chars.push('├'),
-                    //     true => chars.push('└'),
-                    // }
-                    chars.push('├');
-                    chars.push('─');
-                }
-                _ => {
-                    chars.push('│');
-                    chars.push(' ');
-                }
-            }
-        }
-        chars
-    }
-
-    fn display(&self, start: NodeIndex) -> Vec<char> {
-        let mut curr = start;
-        let mut chars: Vec<char> = self.graph[curr].to_string().chars().collect();
-        let mut visited: HashSet<NodeIndex> = HashSet::new();
-        let mut branch = vec![];
-
-        'outer: loop {
-            visited.insert(curr);
-
-            // horrible, but .rev() doesn't work and I need insertion order
-            for node in self
-                .graph
-                .neighbors(curr)
-                .collect::<Vec<NodeIndex>>()
-                .iter()
-                .rev()
-            {
-                if !visited.contains(&node) {
-                    branch.push(curr);
-                    curr = *node;
-
-                    chars.append(&mut Tree::display_node_at_depth(
-                        &self.graph[curr],
-                        branch.len(),
-                    ));
-
-                    continue 'outer;
-                }
-            }
-
-            curr = branch.pop().unwrap();
-
-            if visited.len() == self.graph.node_count() {
-                break;
-            }
-        }
-
-        // for (ii, node) in iter().enumerate() {
-        //     chars.push('\n');
-        //     chars.append(&mut Self::write_children(
-        //         depth + 1,
-        //         ii == tree.nodes.len() - 1,
-        //         node,
-        //     )
-
-        chars
-    }
 }
 
 impl<T: Default + PartialEq + Display> Display for Tree<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf = &self.display(self.root);
-
-        let buf: String = buf.iter().collect();
-        write!(f, "{}", buf)
+        write!(f, "{}", self.create_view(self.root))
     }
 }
 
