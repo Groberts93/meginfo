@@ -82,9 +82,7 @@ impl FifParser {
                     curr = child;
                 }
                 Kind::BlockEnd => {
-                    tree.add_child(tag);
-                    let prev = stack.pop().unwrap();
-                    tree.move_to(prev);
+                    tree.move_to(stack.pop().unwrap());
                 }
                 _ => {
                     tree.add_child(tag);
