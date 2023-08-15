@@ -1,34 +1,40 @@
 //! Tag
-//! 
+//!
 //! This is an abstraction to contain tags read from a fif file.
 //! Each tag comprises a header and a data block.
-//! 
+//!
 //! The header has a fixed size of 16 bytes, while the data block is variable-size.
 //! Each header is decoded as four i32 values:
-//! 
+//!
 //! code: an enum which defines the "kind" of tag, see fiff/tags.tsv
 //! dtype: an enum which defines the format of the data block, see fiff/primitives.tsv
 //! size: the size in bytes of the ensuing data block
 //! next: supposedly a file pointer to the next block, but typically set to 0 and ignored
-//! 
+//!
 //! Contains code to parse these from u8 slices using nomparser.
-//! 
+//!
 
 use nom::multi;
 use nom::number::complete::{be_f32, be_i32};
 use nom::{sequence, IResult};
 use std::fmt::Display;
 
-use crate::enums::{BlockKind, TagKind};
+use crate::enums::{BlockKind, BlockTagKind, DataTagKind};
 use serde::Deserialize;
 
-
 #[derive(Debug, PartialEq)]
-enum FiffNode {
-    Tag(Tag),
-    Block(Block)
+pub enum FiffNode {
+    Tag(DataTag),
+    Block(Block),
 }
 
+impl Default for FiffNode {
+    fn default() -> Self {
+        FiffNode::Block(Block {
+            kind: BlockKind::Root,
+        })
+    }
+}
 
 impl Display for FiffNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -36,34 +42,63 @@ impl Display for FiffNode {
     }
 }
 
-
 #[derive(Debug, PartialEq, Default)]
 pub struct Block {
     pub kind: BlockKind,
 }
 
-#[derive(Debug, PartialEq, Default)]
-pub struct Tag {
-    pub kind: TagKind,
-    data: Data,
+#[derive(Debug, PartialEq)]
+pub struct DataTag {
+    pub kind: DataTagKind,
+    pub data: Data,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct BlockTag {
+    pub kind: BlockTagKind,
+    pub data: Data,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Tag {
+    DataTag(DataTag),
+    BlockTag(BlockTag),
+}
+
+impl Default for Tag {
+    fn default() -> Self {
+        Tag::DataTag(DataTag {
+            kind: DataTagKind::Nop,
+            data: Data::Void,
+        })
+    }
 }
 
 impl Tag {
     pub fn from_header_slice(header: Header, slice: Vec<u8>) -> Self {
-        Tag {
-            kind: TagKind::from_code(header.code),
-            data: Data::from_slice(slice, header.dtype),
+        // see if it's a block code first
+        if let Ok(kind) = BlockTagKind::from_code(header.code) {
+            return Tag::BlockTag(BlockTag {
+                kind,
+                data: Data::Void,  // TODO: implement this properly
+            });
+        // otherwise we assume it's a normal tag
+        } else {
+            return Tag::DataTag(DataTag {
+                kind: DataTagKind::from_code(header.code),
+                data: Data::from_slice(slice, header.dtype),
+            });
         }
     }
 
     pub fn from_header_file_position(header: Header, start: u64, size: u64) -> Self {
-        Tag {
-            kind: TagKind::from_code(header.code),
+        Tag::DataTag(DataTag {
+            kind: DataTagKind::from_code(header.code),
             data: Data::InFile {
                 start: start,
                 size: size,
             },
-        }
+        })
     }
 }
 
@@ -145,7 +180,6 @@ impl Default for TagDef {
         }
     }
 }
-
 
 pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, Header)> {
     let (input, (code, dtype, size, next)) =

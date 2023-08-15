@@ -4,14 +4,13 @@ use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::vec;
 
-use crate::enums::TagKind;
+use crate::enums::{BlockTagKind, DataTagKind};
 use crate::graph::Tree;
 
-use crate::tag::{tag_header, Tag, TagDef, Block};
+use crate::tag::{tag_header, Block, BlockTag, DataTag, FiffNode, Tag, TagDef};
 use csv::ReaderBuilder;
 
 // contains main file reading and parsing loop
-
 
 // is this a comment?
 pub struct FifParser {
@@ -75,18 +74,25 @@ impl FifParser {
         let mut curr = tree.root;
 
         for tag in tags {
-            match tag.kind {
-                TagKind::BlockStart => {
-                    stack.push(curr);
-                    let child = tree.add_child(tag);
-                    tree.move_to(child);
-                    curr = child;
-                }
-                TagKind::BlockEnd => {
-                    tree.move_to(stack.pop().unwrap());
-                }
-                _ => {
-                    tree.add_child(tag);
+            match tag {
+                Tag::BlockTag(block) => match block {
+                    BlockTag { kind, data } => match kind {
+                        BlockTagKind::BlockStart => {
+                            stack.push(curr);
+                            let child = tree.add_child(FiffNode::Block(Block::default()));
+                            tree.move_to(child);
+                            curr = child;
+                        }
+                        BlockTagKind::BlockEnd => {
+                            tree.move_to(stack.pop().unwrap());
+                        }
+                        BlockTagKind::BlockId => {
+                            // TODO: put this in the block structure
+                        }
+                    },
+                },
+                Tag::DataTag(data) => {
+                    tree.add_child(FiffNode::Tag(data));
                 }
             }
         }

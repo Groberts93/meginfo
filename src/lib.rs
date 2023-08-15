@@ -1,6 +1,6 @@
 //! # meginfo is a crate for reading neuromag/MEGIN/fif files.
-//! 
-//! 
+//!
+//!
 
 pub mod config;
 pub mod enums;
