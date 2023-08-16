@@ -24,15 +24,39 @@ use serde::Deserialize;
 
 #[derive(Debug, PartialEq)]
 pub enum FiffNode {
-    Tag(DataTag),
-    Block(Block),
+    Tag { kind: DataTagKind, data: Data },
+    Block { kind: BlockKind },
+}
+
+impl FiffNode {
+    pub fn from_block_tag(block_tag: BlockTag) -> Self {
+        match block_tag.kind {
+            BlockTagKind::BlockStart => {
+                if let Data::Int32(data) = block_tag.data {
+                    let kind = BlockKind::from_code(data[0]);
+                    FiffNode::Block { kind }
+                } else {
+                    println!("{:?}", block_tag);
+                    panic!("block start has non-int32 dtype")
+                }
+            }
+            _ => panic!("tried to created block using non-start code"),
+        }
+    }
+
+    pub fn from_data_tag(data_tag: DataTag) -> Self {
+        FiffNode::Tag {
+            kind: data_tag.kind,
+            data: data_tag.data,
+        }
+    }
 }
 
 impl Default for FiffNode {
     fn default() -> Self {
-        FiffNode::Block(Block {
+        FiffNode::Block {
             kind: BlockKind::Root,
-        })
+        }
     }
 }
 
@@ -80,7 +104,7 @@ impl Tag {
         if let Ok(kind) = BlockTagKind::from_code(header.code) {
             return Tag::BlockTag(BlockTag {
                 kind,
-                data: Data::Void,  // TODO: implement this properly
+                data: Data::from_slice(slice, header.dtype), // TODO: implement this properly
             });
         // otherwise we assume it's a normal tag
         } else {

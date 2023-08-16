@@ -75,24 +75,22 @@ impl FifParser {
 
         for tag in tags {
             match tag {
-                Tag::BlockTag(block) => match block {
-                    BlockTag { kind, data } => match kind {
-                        BlockTagKind::BlockStart => {
-                            stack.push(curr);
-                            let child = tree.add_child(FiffNode::Block(Block::default()));
-                            tree.move_to(child);
-                            curr = child;
-                        }
-                        BlockTagKind::BlockEnd => {
-                            tree.move_to(stack.pop().unwrap());
-                        }
-                        BlockTagKind::BlockId => {
-                            // TODO: put this in the block structure
-                        }
-                    },
+                Tag::BlockTag(block) => match block.kind {
+                    BlockTagKind::BlockStart => {
+                        stack.push(curr);
+                        let child = tree.add_child(FiffNode::from_block_tag(block));
+                        tree.move_to(child);
+                        curr = child;
+                    }
+                    BlockTagKind::BlockEnd => {
+                        tree.move_to(stack.pop().unwrap());
+                    }
+                    BlockTagKind::BlockId => {
+                        // TODO: put this in the block structure
+                    }
                 },
                 Tag::DataTag(data) => {
-                    tree.add_child(FiffNode::Tag(data));
+                    tree.add_child(FiffNode::from_data_tag(data));
                 }
             }
         }
