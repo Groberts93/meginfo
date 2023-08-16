@@ -7,7 +7,7 @@ use std::vec;
 use crate::enums::{BlockTagKind, DataTagKind};
 use crate::graph::Tree;
 
-use crate::tag::{tag_header, Block, BlockTag, DataTag, FiffNode, Tag, TagDef};
+use crate::tag::{tag_header, Block, FiffNode, Tag, TagDef};
 use csv::ReaderBuilder;
 
 // contains main file reading and parsing loop
@@ -74,11 +74,11 @@ impl FifParser {
         let mut curr = tree.root;
 
         for tag in tags {
-            match tag {
-                Tag::BlockTag(block) => match block.kind {
+            match &tag {
+                Tag::Block { kind, data } => match kind {
                     BlockTagKind::BlockStart => {
                         stack.push(curr);
-                        let child = tree.add_child(FiffNode::from_block_tag(block));
+                        let child = tree.add_child(FiffNode::from_tag(tag));
                         tree.move_to(child);
                         curr = child;
                     }
@@ -89,8 +89,8 @@ impl FifParser {
                         // TODO: put this in the block structure
                     }
                 },
-                Tag::DataTag(data) => {
-                    tree.add_child(FiffNode::from_data_tag(data));
+                Tag::Data { kind, data } => {
+                    tree.add_child(FiffNode::from_tag(tag));
                 }
             }
         }

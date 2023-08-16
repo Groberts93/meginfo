@@ -29,25 +29,25 @@ pub enum FiffNode {
 }
 
 impl FiffNode {
-    pub fn from_block_tag(block_tag: BlockTag) -> Self {
-        match block_tag.kind {
-            BlockTagKind::BlockStart => {
-                if let Data::Int32(data) = block_tag.data {
-                    let kind = BlockKind::from_code(data[0]);
-                    FiffNode::Block { kind }
-                } else {
-                    println!("{:?}", block_tag);
-                    panic!("block start has non-int32 dtype")
+    pub fn from_tag(tag: Tag) -> Self {
+        match tag {
+            Tag::Block { kind, data } => match kind {
+                BlockTagKind::BlockStart => {
+                    if let Data::Int32(data) = data {
+                        let kind = BlockKind::from_code(data[0]);
+                        FiffNode::Block { kind }
+                    } else {
+                        // println!("{:?}", tag);
+                        panic!("block start has non-int32 dtype")
+                    }
                 }
-            }
-            _ => panic!("tried to created block using non-start code"),
-        }
-    }
+                _ => panic!("tried to created block using non-start code"),
+            },
 
-    pub fn from_data_tag(data_tag: DataTag) -> Self {
-        FiffNode::Tag {
-            kind: data_tag.kind,
-            data: data_tag.data,
+            Tag::Data { kind, data } => FiffNode::Tag {
+                kind: kind,
+                data: data,
+            },
         }
     }
 }
@@ -72,29 +72,17 @@ pub struct Block {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct DataTag {
-    pub kind: DataTagKind,
-    pub data: Data,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct BlockTag {
-    pub kind: BlockTagKind,
-    pub data: Data,
-}
-
-#[derive(Debug, PartialEq)]
 pub enum Tag {
-    DataTag(DataTag),
-    BlockTag(BlockTag),
+    Data { kind: DataTagKind, data: Data },
+    Block { kind: BlockTagKind, data: Data },
 }
 
 impl Default for Tag {
     fn default() -> Self {
-        Tag::DataTag(DataTag {
+        Tag::Data {
             kind: DataTagKind::Nop,
             data: Data::Void,
-        })
+        }
     }
 }
 
@@ -102,27 +90,27 @@ impl Tag {
     pub fn from_header_slice(header: Header, slice: Vec<u8>) -> Self {
         // see if it's a block code first
         if let Ok(kind) = BlockTagKind::from_code(header.code) {
-            return Tag::BlockTag(BlockTag {
+            return Tag::Block {
                 kind,
                 data: Data::from_slice(slice, header.dtype), // TODO: implement this properly
-            });
+            };
         // otherwise we assume it's a normal tag
         } else {
-            return Tag::DataTag(DataTag {
+            return Tag::Data {
                 kind: DataTagKind::from_code(header.code),
                 data: Data::from_slice(slice, header.dtype),
-            });
+            };
         }
     }
 
     pub fn from_header_file_position(header: Header, start: u64, size: u64) -> Self {
-        Tag::DataTag(DataTag {
+        Tag::Data {
             kind: DataTagKind::from_code(header.code),
             data: Data::InFile {
                 start: start,
                 size: size,
             },
-        })
+        }
     }
 }
 
