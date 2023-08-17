@@ -144,9 +144,17 @@ pub enum Data {
     JulianDate(Vec<i32>),
     String(String),
     ChInfoStruct(Vec<u8>),
-    IdStruct(Vec<u8>),
+    IdStruct(IdStruct),
     DigPointStruct(Vec<u8>),
     CoordTransStruct(Vec<u8>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct IdStruct {
+    version: i32,
+    machid: (i32, i32),
+    secs: i32,
+    usecs: i32,
 }
 
 impl Data {
@@ -158,7 +166,7 @@ impl Data {
             6 => Data::JulianDate(i32_many(&slice).unwrap().1),
             10 => Data::String(string(slice)),
             30 => Data::ChInfoStruct(slice),
-            31 => Data::IdStruct(slice),
+            31 => Data::IdStruct(idstruct(&slice).unwrap().1),
             33 => Data::DigPointStruct(slice),
             35 => Data::CoordTransStruct(slice),
             _ => Data::Slice(slice),
@@ -221,4 +229,20 @@ pub fn f32_many(input: &[u8]) -> IResult<&[u8], Vec<f32>> {
 
 pub fn string(input: Vec<u8>) -> String {
     String::from_utf8(input).unwrap()
+}
+
+pub fn idstruct(input: &[u8]) -> IResult<&[u8], IdStruct> {
+    let be_i32_pair = sequence::tuple((be_i32, be_i32));
+    let (input, (version, machid, secs, usecs)) =
+        sequence::tuple((be_i32, be_i32_pair, be_i32, be_i32))(input)?;
+
+    Ok((
+        input,
+        IdStruct {
+            version,
+            machid,
+            secs,
+            usecs,
+        },
+    ))
 }

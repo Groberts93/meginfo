@@ -249,9 +249,6 @@ impl DataTagKind {
             107 => DataTagKind::FreeBlock,
             108 => DataTagKind::Nop,
             109 => DataTagKind::ParentFileId,
-            110 => DataTagKind::ParentBlockId,
-            111 => DataTagKind::BlockName,
-            112 => DataTagKind::BlockVersion,
             113 => DataTagKind::Creator,
             114 => DataTagKind::Modifier,
             115 => DataTagKind::RefRole,
@@ -477,6 +474,9 @@ pub enum BlockTagKind {
     BlockId,
     BlockStart,
     BlockEnd,
+    ParentBlockId,
+    BlockName,
+    BlockVersion,
 }
 
 impl BlockTagKind {
@@ -485,6 +485,9 @@ impl BlockTagKind {
             103 => Ok(BlockTagKind::BlockId),
             104 => Ok(BlockTagKind::BlockStart),
             105 => Ok(BlockTagKind::BlockEnd),
+            110 => Ok(BlockTagKind::ParentBlockId),
+            111 => Ok(BlockTagKind::BlockName),
+            112 => Ok(BlockTagKind::BlockVersion),
             _ => Err(format!("could not convert code {} to block", code)),
         }
     }

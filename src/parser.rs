@@ -85,8 +85,8 @@ impl FifParser {
                     BlockTagKind::BlockEnd => {
                         tree.move_to(stack.pop().unwrap());
                     }
-                    BlockTagKind::BlockId => {
-                        // TODO: put this in the block structure
+                    _ => {
+                        println!("ignored tag: {:?}", &tag)
                     }
                 },
                 Tag::Data { kind, data } => {
