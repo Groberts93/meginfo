@@ -2,6 +2,7 @@
 name = "meginfo"
 version = "0.1.0"
 edition = "2021"
+description = "Reads fif files fast"
 
 [dependencies]
 anyhow = "1.0.72"

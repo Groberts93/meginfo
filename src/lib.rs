@@ -8,15 +8,17 @@ pub mod graph;
 pub mod parser;
 pub mod tag;
 
+use anyhow;
 use config::Config;
 use parser::{read_tag_dict, FifParser};
-use std::error::Error;
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run(config: Config) -> anyhow::Result<()> {
     let tag_dict = read_tag_dict();
     let parser = FifParser::new(tag_dict);
 
-    parser.parse_fif(config.file)?;
+    let file = config.files[0].clone();
+
+    parser.parse_fif(file)?;
 
     Ok(())
 }

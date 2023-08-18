@@ -1,9 +1,11 @@
+use std::path::{Path, PathBuf};
+
 pub struct Config {
-    pub file: String,
+    pub files: Vec<PathBuf>,
 }
 
 impl Config {
-    pub fn from_file(file: String) -> Config {
-        Config { file }
+    pub fn new(files: Vec<PathBuf>) -> Config {
+        Config { files }
     }
 }

@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek};
+use std::path::PathBuf;
 use std::vec;
 
 use crate::enums::{BlockTagKind, DataTagKind};
@@ -12,7 +13,6 @@ use csv::ReaderBuilder;
 
 // contains main file reading and parsing loop
 
-// is this a comment?
 pub struct FifParser {
     tag_dict: HashMap<i32, TagDef>,
 }
@@ -22,9 +22,9 @@ impl FifParser {
         FifParser { tag_dict }
     }
 
-    pub fn parse_fif(&self, file: String) -> Result<()> {
+    pub fn parse_fif(&self, file: PathBuf) -> Result<()> {
         // open the fif file, wrap in bufreader
-        let fh = File::open(&file).with_context(|| format!("No file found at {}", &file))?;
+        let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
         let mut _tags = self.collect_tags(fh);
 
@@ -111,7 +111,6 @@ impl FifParser {
 }
 
 pub fn read_tag_dict() -> HashMap<i32, TagDef> {
-    //! how bout this?
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
         .from_path("fiff/tags.tsv")
