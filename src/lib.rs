@@ -16,9 +16,12 @@ pub fn run(config: Config) -> anyhow::Result<()> {
     let tag_dict = read_tag_dict();
     let parser = FifParser::new(tag_dict);
 
-    let file = config.files[0].clone();
-
-    parser.parse_fif(file)?;
+    for file in config.files {
+        let tree = parser.parse_fif(file)?;
+        if config.show_tree {
+            println!("{}", tree);
+        }
+    }
 
     Ok(())
 }

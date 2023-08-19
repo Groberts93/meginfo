@@ -28,7 +28,6 @@ impl FifParser {
 
         let mut tree = self.collect_tags(fh)?;
 
-
         Ok(tree)
     }
 
@@ -93,8 +92,6 @@ impl FifParser {
                 }
             }
         }
-
-        println!("{}", tree);
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))

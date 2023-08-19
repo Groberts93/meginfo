@@ -6,6 +6,7 @@ description = "Reads fif files fast"
 
 [dependencies]
 anyhow = "1.0.72"
+atty = "0.2.14"
 clap = { version = "4.3.22", features = ["derive"] }
 csv = "1.2.2"
 nom = "7.1.3"
