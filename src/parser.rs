@@ -22,18 +22,17 @@ impl FifParser {
         FifParser { tag_dict }
     }
 
-    pub fn parse_fif(&self, file: PathBuf) -> Result<()> {
+    pub fn parse_fif(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
         // open the fif file, wrap in bufreader
         let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
-        let mut _tags = self.collect_tags(fh);
+        let mut tree = self.collect_tags(fh)?;
 
-        let _fh = File::open(&file).unwrap();
 
-        Ok(())
+        Ok(tree)
     }
 
-    fn collect_tags(&self, fh: File) -> Vec<Tag> {
+    fn collect_tags(&self, fh: File) -> Result<Tree<FiffNode>> {
         let file_length = fh.metadata().unwrap().len();
 
         const BUFFER_SIZE: usize = 8192;
@@ -106,7 +105,7 @@ impl FifParser {
             cur_pos, position, file_length
         );
 
-        vec![]
+        Ok(tree)
     }
 }
 
