@@ -5,7 +5,7 @@ use std::default;
 // tag code, see fiff/tags.tsv
 // is currently missing the MNE-specific tags.
 // carries a catchall Code(i32) variant to hold any codes not recognised here
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub enum DataTagKind {
     #[default]
     FileId,
@@ -469,7 +469,7 @@ impl DataTagKind {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BlockTagKind {
     BlockId,
     BlockStart,

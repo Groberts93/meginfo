@@ -14,12 +14,12 @@ use csv::ReaderBuilder;
 // contains main file reading and parsing loop
 
 pub struct FifParser {
-    tag_dict: HashMap<i32, TagDef>,
+    query_tags: Vec<i32>,
 }
 
 impl FifParser {
-    pub fn new(tag_dict: HashMap<i32, TagDef>) -> Self {
-        FifParser { tag_dict }
+    pub fn new(query_tags: Vec<i32>) -> Self {
+        FifParser { query_tags }
     }
 
     pub fn parse_fif(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
@@ -41,17 +41,11 @@ impl FifParser {
         let mut tags = vec![];
 
         let mut position = 0u64;
-
-        let mut codes = HashMap::new();
+        let mut search_results = vec![];
 
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
             position += 16;
-
-            codes
-                .entry(tag_header.code)
-                .and_modify(|x| *x += 1)
-                .or_insert(1);
 
             let tag = if size > 30 {
                 reader.seek_relative(size as i64).unwrap();
@@ -64,8 +58,20 @@ impl FifParser {
 
             position += size;
 
+            match &tag {
+                Tag::Data { kind, .. } => {
+                    for code in &self.query_tags {
+                        if DataTagKind::from_code(*code) == *kind {
+                            search_results.push(tag.clone());
+                        }
+                    }
+                }
+                _ => {}
+            }
             tags.push(tag);
         }
+
+        println!("{:?}", search_results);
 
         let mut tree = Tree::new();
         let mut stack = vec![];
@@ -73,7 +79,7 @@ impl FifParser {
 
         for tag in tags {
             match &tag {
-                Tag::Block { kind, data } => match kind {
+                Tag::Block { kind, .. } => match kind {
                     BlockTagKind::BlockStart => {
                         stack.push(curr);
                         let child = tree.add_child(FiffNode::from_tag(tag));
@@ -87,7 +93,7 @@ impl FifParser {
                         println!("ignored tag: {:?}", &tag)
                     }
                 },
-                Tag::Data { kind, data } => {
+                Tag::Data { .. } => {
                     tree.add_child(FiffNode::from_tag(tag));
                 }
             }
@@ -104,20 +110,4 @@ impl FifParser {
 
         Ok(tree)
     }
-}
-
-pub fn read_tag_dict() -> HashMap<i32, TagDef> {
-    let mut reader = ReaderBuilder::new()
-        .delimiter(b'\t')
-        .from_path("fiff/tags.tsv")
-        .expect("file should be found in fiff/tags.tsv");
-
-    let mut tag_dict: HashMap<i32, TagDef> = HashMap::new();
-
-    for result in reader.deserialize() {
-        let record: TagDef = result.expect("static tsv should have been readable");
-        tag_dict.insert(record.code, record);
-    }
-
-    tag_dict
 }

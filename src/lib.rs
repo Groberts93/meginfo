@@ -10,11 +10,10 @@ pub mod tag;
 
 use anyhow;
 use config::Config;
-use parser::{read_tag_dict, FifParser};
+use parser::FifParser;
 
 pub fn run(config: Config) -> anyhow::Result<()> {
-    let tag_dict = read_tag_dict();
-    let parser = FifParser::new(tag_dict);
+    let parser = FifParser::new(config.query_codes);
 
     for file in config.files {
         let tree = parser.parse_fif(file)?;

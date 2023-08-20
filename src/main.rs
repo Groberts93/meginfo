@@ -3,11 +3,11 @@
 //! # Usage
 //!
 //! Look at one file with:
-//! 
+//!
 //! `meginfo -f file.fif`
 //!
 //! A file list can be read from stdin:
-//! 
+//!
 //! `find data | meginfo`
 //!
 
@@ -25,7 +25,7 @@ struct Cli {
     files: Vec<String>,
 
     #[arg(long, short)]
-    tag: Vec<String>,
+    tags: Vec<String>,
 
     #[arg(long, short)]
     show_tree: bool,
@@ -80,7 +80,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     let files = strings_to_filepaths(files);
-    let config = Config::new(files, cli.show_tree);
+    let config = Config::new(files, cli.show_tree, cli.tags);
     run(config)?;
     Ok(())
 }

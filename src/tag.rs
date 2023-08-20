@@ -71,7 +71,7 @@ pub struct Block {
     pub kind: BlockKind,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Tag {
     Data { kind: DataTagKind, data: Data },
     Block { kind: BlockTagKind, data: Data },
@@ -183,7 +183,7 @@ impl Display for Data {
 #[derive(Debug, Deserialize)]
 pub struct TagDef {
     pub code: i32,
-    name: String,
+    pub name: String,
     dtype: String,
     unit: String,
     description: String,
