@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use log::{info, warn};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek};
@@ -71,7 +72,11 @@ impl FifParser {
             tags.push(tag);
         }
 
-        println!("{:?}", search_results);
+        if search_results.is_empty() {
+            warn!("found no tags of specified type");
+        } else {
+            println!("{:?}", search_results);
+        }
 
         let mut tree = Tree::new();
         let mut stack = vec![];
@@ -90,7 +95,7 @@ impl FifParser {
                         tree.move_to(stack.pop().unwrap());
                     }
                     _ => {
-                        println!("ignored tag: {:?}", &tag)
+                        info!("ignored tag: {:?}", &tag)
                     }
                 },
                 Tag::Data { .. } => {
@@ -103,7 +108,7 @@ impl FifParser {
             .seek(io::SeekFrom::Current(0))
             .expect("should be able to seek to current position");
 
-        println!(
+        info!(
             "Finished reading, cursor at {} bytes (tracked {}), file is {} bytes long",
             cur_pos, position, file_length
         );

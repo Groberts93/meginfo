@@ -1,32 +1,40 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use anyhow::anyhow;
 use csv::ReaderBuilder;
 
 use crate::tag::TagDef;
+
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Config {
     pub files: Vec<PathBuf>,
     pub show_tree: bool,
     pub query_codes: Vec<i32>,
-    pub debug: bool
 }
 
 impl Config {
-    pub fn new(files: Vec<PathBuf>, show_tree: bool, query_tags: Vec<String>, debug: bool) -> Config {
+    pub fn new(files: Vec<PathBuf>, show_tree: bool, query_tags: Vec<String>) -> Result<Config> {
         let string_to_tag = read_tag_dict();
-        let query_codes = query_tags
+        let query_codes: Result<Vec<&TagDef>> = query_tags
             .iter()
-            .map(|x| string_to_tag.get(x).unwrap().code)
+            .map(|x| {
+                string_to_tag.get(x).ok_or(anyhow!(
+                    "Unrecognized tag: {:?}. See fiff/tags.tsv for a list of valid names.",
+                    x
+                ))
+            })
             .collect();
 
-        Config {
+        let query_codes = query_codes?.into_iter().map(|x| x.code).collect();
+
+        Ok(Config {
             files,
             show_tree,
             query_codes,
-            debug
-        }
+        })
     }
 }
 

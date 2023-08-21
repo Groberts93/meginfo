@@ -19,7 +19,7 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
 use env_logger;
-use log::{LevelFilter, info, warn};
+use log::{info, warn, LevelFilter};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)] // Read from `Cargo.toml`
@@ -48,8 +48,6 @@ fn strings_to_filepaths(input: Vec<String>) -> Vec<PathBuf> {
 }
 
 fn main() -> anyhow::Result<()> {
-
-
     let cli = Cli::parse();
 
     let log_level = cli.log.unwrap_or(LevelFilter::Warn);
@@ -91,7 +89,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     let files = strings_to_filepaths(files);
-    let config = Config::new(files, cli.show_tree, cli.tags, true);
+    let config = Config::new(files, cli.show_tree, cli.tags)?;
     run(config)?;
     Ok(())
 }

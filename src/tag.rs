@@ -37,7 +37,6 @@ impl FiffNode {
                         let kind = BlockKind::from_code(data[0]);
                         FiffNode::Block { kind }
                     } else {
-                        // println!("{:?}", tag);
                         panic!("block start has non-int32 dtype")
                     }
                 }

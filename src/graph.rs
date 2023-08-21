@@ -78,7 +78,6 @@ mod tests {
     fn can_make_tree() {
         let tree = make_dummy_tree();
 
-        println!("{tree}");
         assert_eq!(tree.node_count(), 8);
         assert_eq!(tree.edge_count(), 7);
         assert_eq!(tree.graph.node_weights().fold(0, |acc, x| acc + x), 28);
@@ -88,8 +87,6 @@ mod tests {
     fn can_write_dot() {
         let tree = make_dummy_tree();
         let dot = Dot::new(&tree.graph);
-
-        println!("{dot:?}");
     }
 
     fn make_dummy_tree() -> Tree<i32> {
