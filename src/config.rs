@@ -10,10 +10,11 @@ pub struct Config {
     pub files: Vec<PathBuf>,
     pub show_tree: bool,
     pub query_codes: Vec<i32>,
+    pub debug: bool
 }
 
 impl Config {
-    pub fn new(files: Vec<PathBuf>, show_tree: bool, query_tags: Vec<String>) -> Config {
+    pub fn new(files: Vec<PathBuf>, show_tree: bool, query_tags: Vec<String>, debug: bool) -> Config {
         let string_to_tag = read_tag_dict();
         let query_codes = query_tags
             .iter()
@@ -24,6 +25,7 @@ impl Config {
             files,
             show_tree,
             query_codes,
+            debug
         }
     }
 }

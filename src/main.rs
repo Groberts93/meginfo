@@ -18,6 +18,9 @@ use meginfo::{config::Config, run};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
+use env_logger;
+use log::{LevelFilter, info, warn};
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)] // Read from `Cargo.toml`
 struct Cli {
@@ -29,6 +32,9 @@ struct Cli {
 
     #[arg(long, short)]
     show_tree: bool,
+
+    #[arg(long, short)]
+    log: Option<LevelFilter>,
 }
 
 const MAX_LINES_IN: u32 = 20000;
@@ -42,7 +48,12 @@ fn strings_to_filepaths(input: Vec<String>) -> Vec<PathBuf> {
 }
 
 fn main() -> anyhow::Result<()> {
+
+
     let cli = Cli::parse();
+
+    let log_level = cli.log.unwrap_or(LevelFilter::Warn);
+    env_logger::Builder::new().filter_level(log_level).init();
 
     let mut files: Vec<String> = vec![];
     let mut line_count = 0;
@@ -80,7 +91,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     let files = strings_to_filepaths(files);
-    let config = Config::new(files, cli.show_tree, cli.tags);
+    let config = Config::new(files, cli.show_tree, cli.tags, true);
     run(config)?;
     Ok(())
 }
