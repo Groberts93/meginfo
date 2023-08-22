@@ -1,11 +1,6 @@
-use std::collections::HashSet;
 use std::fmt::Display;
-
-use petgraph::data::Build;
-use petgraph::dot::{Config, Dot};
-use petgraph::stable_graph::{EdgeIndex, NodeIndex, StableGraph, StableUnGraph};
-use petgraph::visit::IntoNeighbors;
-use petgraph::{Directed, Graph, Undirected};
+use petgraph::stable_graph::{NodeIndex, StableGraph};
+use petgraph::Directed;
 
 use termtree;
 
@@ -73,6 +68,7 @@ impl<T: Default + PartialEq + Display> Display for Tree<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use petgraph::dot::Dot;
 
     #[test]
     fn can_make_tree() {
@@ -86,7 +82,7 @@ mod tests {
     #[test]
     fn can_write_dot() {
         let tree = make_dummy_tree();
-        let dot = Dot::new(&tree.graph);
+        let _dot = Dot::new(&tree.graph);
     }
 
     fn make_dummy_tree() -> Tree<i32> {

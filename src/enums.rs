@@ -1,7 +1,5 @@
 // home for giant enums which will clutter the rest of the codebase
 
-use std::default;
-
 // tag code, see fiff/tags.tsv
 // is currently missing the MNE-specific tags.
 // carries a catchall Code(i32) variant to hold any codes not recognised here

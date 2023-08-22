@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use log::{info, warn};
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::path::PathBuf;
@@ -9,8 +8,7 @@ use std::vec;
 use crate::enums::{BlockTagKind, DataTagKind};
 use crate::graph::Tree;
 
-use crate::tag::{tag_header, Block, FiffNode, Tag, TagDef};
-use csv::ReaderBuilder;
+use crate::tag::{tag_header, FiffNode, Tag};
 
 // contains main file reading and parsing loop
 

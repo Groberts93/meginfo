@@ -19,7 +19,7 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 
 use env_logger;
-use log::{info, warn, LevelFilter};
+use log::LevelFilter;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)] // Read from `Cargo.toml`
