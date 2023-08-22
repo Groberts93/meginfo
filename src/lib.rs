@@ -16,7 +16,7 @@ pub fn run(config: Config) -> anyhow::Result<()> {
     let parser = FifParser::new(config.query_codes);
 
     for file in config.files {
-        let tree = parser.parse_fif(file)?;
+        let tree = parser.parse(file)?;
         if config.show_tree {
             println!("{}", tree);
         }

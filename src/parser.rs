@@ -23,16 +23,18 @@ impl FifParser {
         FifParser { query_tags }
     }
 
-    pub fn parse_fif(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
+    pub fn parse(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
         // open the fif file, wrap in bufreader
         let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
-        let mut tree = self.collect_tags(fh)?;
+        let tags = self.read_tags(fh)?;
+
+        let tree = Self::make_fif_tree(tags)?;
 
         Ok(tree)
     }
 
-    fn collect_tags(&self, fh: File) -> Result<Tree<FiffNode>> {
+    pub fn read_tags(&self, fh: File) -> Result<Vec<Tag>> {
         let file_length = fh.metadata().unwrap().len();
 
         const BUFFER_SIZE: usize = 8192;
@@ -78,6 +80,19 @@ impl FifParser {
             println!("{:?}", search_results);
         }
 
+        let cur_pos = reader
+            .seek(io::SeekFrom::Current(0))
+            .expect("should be able to seek to current position");
+
+        info!(
+            "Finished reading, cursor at {} bytes (tracked {}), file is {} bytes long",
+            cur_pos, position, file_length
+        );
+
+        Ok(tags)
+    }
+
+    fn make_fif_tree(tags: Vec<Tag>) -> Result<Tree<FiffNode>> {
         let mut tree = Tree::new();
         let mut stack = vec![];
         let mut curr = tree.root;
@@ -103,15 +118,6 @@ impl FifParser {
                 }
             }
         }
-
-        let cur_pos = reader
-            .seek(io::SeekFrom::Current(0))
-            .expect("should be able to seek to current position");
-
-        info!(
-            "Finished reading, cursor at {} bytes (tracked {}), file is {} bytes long",
-            cur_pos, position, file_length
-        );
 
         Ok(tree)
     }
