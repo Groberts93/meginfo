@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use csv::ReaderBuilder;
 
+use crate::enums::DataTagKind;
 use crate::tag::TagDef;
 
 use anyhow::Result;
@@ -12,7 +13,7 @@ use anyhow::Result;
 pub struct Config {
     pub files: Vec<PathBuf>,
     pub show_tree: bool,
-    pub query_codes: Vec<i32>,
+    pub query_codes: Vec<DataTagKind>,
 }
 
 impl Config {
@@ -28,7 +29,10 @@ impl Config {
             })
             .collect();
 
-        let query_codes = query_codes?.into_iter().map(|x| x.code).collect();
+        let query_codes: Vec<DataTagKind> = query_codes?
+            .into_iter()
+            .map(|x| DataTagKind::from_code(x.code))
+            .collect();
 
         Ok(Config {
             files,

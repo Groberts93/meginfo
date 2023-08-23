@@ -6,6 +6,7 @@ pub mod config;
 pub mod enums;
 pub mod graph;
 pub mod parser;
+pub mod query;
 pub mod tag;
 
 use anyhow;

@@ -13,11 +13,11 @@ use crate::tag::{tag_header, FiffNode, Tag};
 // contains main file reading and parsing loop
 
 pub struct FifParser {
-    query_tags: Vec<i32>,
+    query_tags: Vec<DataTagKind>,
 }
 
 impl FifParser {
-    pub fn new(query_tags: Vec<i32>) -> Self {
+    pub fn new(query_tags: Vec<DataTagKind>) -> Self {
         FifParser { query_tags }
     }
 
@@ -63,8 +63,8 @@ impl FifParser {
 
             match &tag {
                 Tag::Data { kind, .. } => {
-                    for code in &self.query_tags {
-                        if DataTagKind::from_code(*code) == *kind {
+                    for query_tag in &self.query_tags {
+                        if *query_tag == *kind {
                             search_results.push(tag.clone());
                         }
                     }
