@@ -23,16 +23,18 @@ impl FifParser {
 
     pub fn parse(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
         // open the fif file, wrap in bufreader
-        let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
+        // let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
-        let tags = self.read_tags(fh)?;
+        let tags = self.read_tags(file)?;
 
-        let tree = Self::make_fif_tree(tags)?;
+        let tree = self.make_fif_tree(tags)?;
 
         Ok(tree)
     }
 
-    pub fn read_tags(&self, fh: File) -> Result<Vec<Tag>> {
+    pub fn read_tags(&self, file: PathBuf) -> Result<Vec<Tag>> {
+        let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
+
         let file_length = fh.metadata().unwrap().len();
 
         const BUFFER_SIZE: usize = 8192;
@@ -90,7 +92,7 @@ impl FifParser {
         Ok(tags)
     }
 
-    fn make_fif_tree(tags: Vec<Tag>) -> Result<Tree<FiffNode>> {
+    pub fn make_fif_tree(&self, tags: Vec<Tag>) -> Result<Tree<FiffNode>> {
         let mut tree = Tree::new();
         let mut stack = vec![];
         let mut curr = tree.root;
