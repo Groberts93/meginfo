@@ -1,6 +1,6 @@
-use std::fmt::Display;
 use petgraph::stable_graph::{NodeIndex, StableGraph};
 use petgraph::Directed;
+use std::fmt::Display;
 
 use termtree;
 
