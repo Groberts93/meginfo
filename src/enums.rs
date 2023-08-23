@@ -3,7 +3,7 @@
 // tag code, see fiff/tags.tsv
 // is currently missing the MNE-specific tags.
 // carries a catchall Code(i32) variant to hold any codes not recognised here
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Eq, Hash)]
 pub enum DataTagKind {
     #[default]
     FileId,
