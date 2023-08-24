@@ -39,7 +39,7 @@ struct QuerySet {
 
 #[derive(Debug, PartialEq)]
 struct ResultSet {
-    tags: HashMap<DataTagKind, Tag>,
+    tags: HashMap<DataTagKind, Vec<Tag>>,
 }
 
 #[cfg(test)]
@@ -48,18 +48,38 @@ mod tests {
 
     #[test]
     fn can_create_search() {
+        let search = Search::new(default_set());
+
+        assert_eq!(
+            search.state,
+            SearchState::Pending(QuerySet {
+                tags: default_set()
+            })
+        );
+    }
+
+    #[test]
+    fn can_execute_search() {
+        let search = Search::new(default_set());
+
+
+    }
+
+    fn default_set() -> HashSet<DataTagKind> {
         let tags = vec![
             DataTagKind::FileId,
             DataTagKind::Sfreq,
             DataTagKind::MeasDate,
             DataTagKind::Sfreq,
         ];
-        let tag_set = HashSet::from_iter(tags.into_iter());
-        let search = Search::new(tag_set.clone());
 
-        assert_eq!(
-            search.state,
-            SearchState::Pending(QuerySet { tags: tag_set })
-        );
+        HashSet::from_iter(tags.into_iter())
+    }
+
+    fn default_tags() -> Vec<Tag> {
+
+        // let tag = Tag::Data { kind: DataTagKind::BadChs, data:  }
+
+        vec![]
     }
 }
