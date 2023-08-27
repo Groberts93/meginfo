@@ -1,9 +1,12 @@
 // home for giant enums which will clutter the rest of the codebase
 
+use serde::Serialize;
+
 // tag code, see fiff/tags.tsv
 // is currently missing the MNE-specific tags.
 // carries a catchall Code(i32) variant to hold any codes not recognised here
-#[derive(Debug, PartialEq, Default, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Default, Clone, Eq, Hash, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum DataTagKind {
     #[default]
     FileId,

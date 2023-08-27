@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Display,
+};
 
 use csv::WriterBuilder;
 
@@ -43,6 +46,35 @@ impl Search {
     }
 }
 
+impl Display for Search {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut wtr = csv::WriterBuilder::new()
+            .delimiter(b',')
+            .from_writer(vec![]);
+
+        let header: Vec<DataTagKind> = self.query.clone().into_iter().collect();
+        wtr.serialize(header.clone()).unwrap();
+
+        if let SearchState::Complete(results) = &self.state {
+            let output: Vec<String> = header
+                .iter()
+                .map(|x| {
+                    results
+                        .get(x)
+                        .unwrap_or(&vec![])
+                        .get(0)
+                        .map_or("Not found".to_owned(), |x| x.to_string())
+                })
+                .collect();
+
+            wtr.serialize(output).unwrap();
+        }
+
+        let data = String::from_utf8(wtr.into_inner().unwrap()).unwrap();
+        write!(f, "{}", data)
+    }
+}
+
 #[derive(Debug, PartialEq)]
 enum SearchState {
     Pending,
@@ -70,6 +102,8 @@ mod tests {
 
         assert_eq!(search.state, SearchState::Complete(default_results()));
         assert_eq!(results, default_results());
+
+        println!("{search}");
     }
 
     fn default_query() -> QuerySet {
