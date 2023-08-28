@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,
+    path::PathBuf,
 };
 
 use csv::WriterBuilder;
@@ -15,15 +16,29 @@ type ResultSet = HashMap<DataTagKind, Vec<Data>>;
 
 pub struct Search {
     query: QuerySet,
-    state: SearchState,
+    state: HashMap<PathBuf, SearchState>,
 }
 
 impl Search {
-    pub fn new(codes: QuerySet) -> Self {
+    pub fn new(codes: QuerySet, files: Vec<PathBuf>) -> Self {
+        let mut state: HashMap<PathBuf, SearchState> = HashMap::new();
+
+        for file in files {
+            state.insert(file, SearchState::Pending);
+        }
+
         Search {
             query: codes,
-            state: SearchState::Pending,
+            state: state,
         }
+    }
+
+    pub fn add_file(&mut self, file: PathBuf) {
+        todo!()
+    }
+
+    pub fn add_files(&mut self, files: Vec<PathBuf>) {
+        todo!()
     }
 
     pub fn execute(&mut self, tags: Vec<Tag>) -> ResultSet {
@@ -52,9 +67,11 @@ impl Display for Search {
             .delimiter(b',')
             .from_writer(vec![]);
 
+        // write header
         let header: Vec<DataTagKind> = self.query.clone().into_iter().collect();
         wtr.serialize(header.clone()).unwrap();
 
+        // write entries
         if let SearchState::Complete(results) = &self.state {
             let output: Vec<String> = header
                 .iter()
