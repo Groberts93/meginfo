@@ -4,6 +4,8 @@ use std::{
     path::PathBuf,
 };
 
+use crate::FifParser;
+use anyhow::Result;
 use csv::WriterBuilder;
 
 use crate::{
@@ -41,7 +43,18 @@ impl Search {
         todo!()
     }
 
-    pub fn execute(&mut self, tags: Vec<Tag>) -> ResultSet {
+    pub fn execute(&mut self) -> HashMap<PathBuf, ResultSet> {
+        todo!()
+
+        // search_tags for every file, map 
+    }
+
+    fn search_tags(&self, file: PathBuf) -> Result<ResultSet> {
+
+        let query_tags: Vec<DataTagKind> = self.query.iter().map(|x| x.clone()).collect();
+        let parser = FifParser::new(query_tags);
+        let tags = parser.read_tags(file)?;
+
         let mut results = ResultSet::new();
 
         for tag in tags {
@@ -55,10 +68,11 @@ impl Search {
             }
         }
 
-        self.state = SearchState::Complete(results.clone());
+        Ok(results)
 
-        results
     }
+
+    
 }
 
 impl Display for Search {
