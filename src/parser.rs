@@ -12,27 +12,25 @@ use crate::tag::{tag_header, FiffNode, Tag};
 
 // contains main file reading and parsing loop
 
-pub struct FifParser {
-    query_tags: Vec<DataTagKind>,
-}
+pub struct FifParser;
 
 impl FifParser {
-    pub fn new(query_tags: Vec<DataTagKind>) -> Self {
-        FifParser { query_tags }
-    }
+    // pub fn new() -> Self {
+    //     FifParser
+    // }
 
-    pub fn parse(&self, file: PathBuf) -> Result<Tree<FiffNode>> {
+    pub fn parse(file: PathBuf) -> Result<Tree<FiffNode>> {
         // open the fif file, wrap in bufreader
         // let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
-        let tags = self.read_tags(file)?;
+        let tags = Self::read_tags(file)?;
 
-        let tree = self.make_fif_tree(tags)?;
+        let tree = Self::make_fif_tree(tags)?;
 
         Ok(tree)
     }
 
-    pub fn read_tags(&self, file: PathBuf) -> Result<Vec<Tag>> {
+    pub fn read_tags(file: PathBuf) -> Result<Vec<Tag>> {
         let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
 
         let file_length = fh.metadata().unwrap().len();
@@ -44,7 +42,7 @@ impl FifParser {
         let mut tags = vec![];
 
         let mut position = 0u64;
-        let mut search_results = vec![];
+        // let mut search_results = vec![];
 
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
@@ -61,24 +59,24 @@ impl FifParser {
 
             position += size;
 
-            match &tag {
-                Tag::Data { kind, .. } => {
-                    for query_tag in &self.query_tags {
-                        if *query_tag == *kind {
-                            search_results.push(tag.clone());
-                        }
-                    }
-                }
-                _ => {}
-            }
+            // match &tag {
+            //     Tag::Data { kind, .. } => {
+            //         for query_tag in &self.query_tags {
+            //             if *query_tag == *kind {
+            //                 search_results.push(tag.clone());
+            //             }
+            //         }
+            //     }
+            //     _ => {}
+            // }
             tags.push(tag);
         }
 
-        if search_results.is_empty() {
-            warn!("found no tags of specified type");
-        } else {
-            println!("{:?}", search_results);
-        }
+        // if search_results.is_empty() {
+        //     warn!("found no tags of specified type");
+        // } else {
+        //     println!("{:?}", search_results);
+        // }
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))
@@ -92,7 +90,7 @@ impl FifParser {
         Ok(tags)
     }
 
-    pub fn make_fif_tree(&self, tags: Vec<Tag>) -> Result<Tree<FiffNode>> {
+    pub fn make_fif_tree(tags: Vec<Tag>) -> Result<Tree<FiffNode>> {
         let mut tree = Tree::new();
         let mut stack = vec![];
         let mut curr = tree.root;

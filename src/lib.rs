@@ -14,12 +14,11 @@ use config::Config;
 use parser::FifParser;
 
 pub fn run(config: Config) -> anyhow::Result<()> {
-    let parser = FifParser::new(config.query_codes);
 
     for file in config.files {
-        let tags = parser.read_tags(file)?;
+        let tags = FifParser::read_tags(file)?;
         if config.show_tree {
-            let tree = parser.make_fif_tree(tags)?;
+            let tree = FifParser::make_fif_tree(tags)?;
             println!("{}", tree);
         }
     }
