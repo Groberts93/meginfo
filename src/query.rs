@@ -6,7 +6,6 @@ use std::{
 
 use crate::FifParser;
 use anyhow::Result;
-// use csv::WriterBuilder;
 
 use crate::{
     enums::DataTagKind,
@@ -72,9 +71,6 @@ impl Display for Search {
 
         // write header
         let header: Vec<DataTagKind> = self.query.clone().into_iter().collect();
-        // let mut header_str = vec!["file".to_owned()];
-        // header_str.append(header.iter().map(|x| x.serialize(serializer)).collect());
-
         wtr.serialize(("file", &header)).unwrap();
 
         // write entries
