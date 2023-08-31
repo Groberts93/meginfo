@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
-use log::{info, warn};
+use log::info;
 use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::path::PathBuf;
 use std::vec;
 
-use crate::enums::{BlockTagKind, DataTagKind};
+use crate::enums::BlockTagKind;
 use crate::graph::Tree;
 
 use crate::tag::{tag_header, FiffNode, Tag};
@@ -15,18 +15,9 @@ use crate::tag::{tag_header, FiffNode, Tag};
 pub struct FifParser;
 
 impl FifParser {
-    // pub fn new() -> Self {
-    //     FifParser
-    // }
-
     pub fn parse(file: PathBuf) -> Result<Tree<FiffNode>> {
-        // open the fif file, wrap in bufreader
-        // let fh = File::open(&file).with_context(|| format!("No file found at {:?}", &file))?;
-
         let tags = Self::read_tags(file)?;
-
         let tree = Self::make_fif_tree(tags)?;
-
         Ok(tree)
     }
 
@@ -42,7 +33,6 @@ impl FifParser {
         let mut tags = vec![];
 
         let mut position = 0u64;
-        // let mut search_results = vec![];
 
         while let Ok(()) = reader.read_exact(&mut header_buf) {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
@@ -59,24 +49,8 @@ impl FifParser {
 
             position += size;
 
-            // match &tag {
-            //     Tag::Data { kind, .. } => {
-            //         for query_tag in &self.query_tags {
-            //             if *query_tag == *kind {
-            //                 search_results.push(tag.clone());
-            //             }
-            //         }
-            //     }
-            //     _ => {}
-            // }
             tags.push(tag);
         }
-
-        // if search_results.is_empty() {
-        //     warn!("found no tags of specified type");
-        // } else {
-        //     println!("{:?}", search_results);
-        // }
 
         let cur_pos = reader
             .seek(io::SeekFrom::Current(0))

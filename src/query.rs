@@ -16,7 +16,6 @@ use crate::{
 type QuerySet = HashSet<DataTagKind>;
 type ResultSet = HashMap<DataTagKind, Vec<Data>>;
 
-
 #[derive(Debug)]
 pub struct Search {
     query: QuerySet,
@@ -36,23 +35,16 @@ impl Search {
             state: state,
         }
     }
- 
- // -> HashMap<PathBuf, ResultSet>
 
-    pub fn execute(&mut self)  {
-        // let mut file_states = HashMap::new();
+    pub fn execute(&mut self) {
         let query = self.query.clone();
 
         for (file, state) in self.state.iter_mut() {
-            // file_states.insert(file.clone(), Self::search_tags(file.clone(), query.clone()).unwrap());
             *state = SearchState::Complete(Self::search_tags(file.clone(), query.clone()).unwrap());
         }
-
-        // file_states
     }
 
     fn search_tags(file: PathBuf, query: QuerySet) -> Result<ResultSet> {
-        // let query_tags: Vec<DataTagKind> = self.query.iter().map(|x| x.clone()).collect();
         let tags = FifParser::read_tags(file)?;
 
         let mut results = ResultSet::new();
@@ -102,10 +94,9 @@ impl Display for Search {
 
                 let mut filename = vec![String::from(file.to_str().unwrap())];
                 filename.append(&mut output);
-    
+
                 wtr.serialize(filename).unwrap();
             }
-
         }
 
         let data = String::from_utf8(wtr.into_inner().unwrap()).unwrap();
@@ -138,7 +129,6 @@ mod tests {
         assert_eq!(search.query, default_query());
     }
 
-
     #[test]
     fn can_execute_search() {
         // this requires default_files, default_tags, default_results, and default_query to be correct
@@ -149,7 +139,6 @@ mod tests {
 
         println!("{search}");
     }
-
 
     fn default_files() -> Vec<PathBuf> {
         vec!["data/file_0.fif", "data/file_1.fif", "data/file_2.fif"]

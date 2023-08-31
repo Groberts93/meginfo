@@ -14,7 +14,6 @@ use config::Config;
 use parser::FifParser;
 
 pub fn run(config: Config) -> anyhow::Result<()> {
-
     for file in config.files {
         let tags = FifParser::read_tags(file)?;
         if config.show_tree {
