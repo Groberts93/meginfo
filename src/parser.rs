@@ -27,6 +27,7 @@ impl FifParser {
         let file_length = fh.metadata().unwrap().len();
 
         const BUFFER_SIZE: usize = 8192;
+        const MAX_PARSE_SIZE: u64 = 512;
 
         let mut reader = io::BufReader::with_capacity(BUFFER_SIZE, fh);
         let mut header_buf = [0u8; 16];
@@ -38,7 +39,7 @@ impl FifParser {
             let (_, (size, tag_header)) = tag_header(&header_buf).unwrap();
             position += 16;
 
-            let tag = if size > 30 {
+            let tag = if size > MAX_PARSE_SIZE {
                 reader.seek_relative(size as i64).unwrap();
                 Tag::from_header_file_position(tag_header, position, size)
             } else {
