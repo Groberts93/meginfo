@@ -92,7 +92,7 @@ impl Display for Search {
                     })
                     .collect();
 
-                let mut filename = vec![String::from(file.to_str().unwrap())];
+                let mut filename = vec![String::from(file.file_name().unwrap().to_str().unwrap())];
                 filename.append(&mut output);
 
                 wtr.serialize(filename).unwrap();

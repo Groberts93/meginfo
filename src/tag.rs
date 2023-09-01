@@ -170,6 +170,7 @@ impl Display for Data {
         let disp = match self {
             Data::Float(x) => display_vec(x),
             Data::Int32(x) => display_vec(x),
+            Data::String(x) => format!("{x}"),
             x => {
                 format!("{x:?}")
             }
