@@ -148,14 +148,6 @@ pub enum Data {
     CoordTransStruct(Vec<u8>),
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct IdStruct {
-    version: i32,
-    machid: (i32, i32),
-    secs: i32,
-    usecs: i32,
-}
-
 impl Data {
     pub fn from_slice(slice: Vec<u8>, dtype: i32) -> Self {
         match dtype {
@@ -175,8 +167,35 @@ impl Data {
 
 impl Display for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        let disp = match self {
+            Data::Float(x) => display_vec(x),
+            Data::Int32(x) => display_vec(x),
+            x => {
+                format!("{x:?}")
+            }
+        };
+
+        write!(f, "{}", disp)
     }
+}
+
+fn display_vec<T: Display>(input: &[T]) -> String {
+    match input.len() {
+        0 => String::from("None"),
+        1 => format!("{}", input[0]),
+        _ => {
+            let strings: Vec<String> = input.iter().map(|x| x.to_string()).collect();
+            strings.join(" ")
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct IdStruct {
+    version: i32,
+    machid: (i32, i32),
+    secs: i32,
+    usecs: i32,
 }
 
 #[derive(Debug, Deserialize)]

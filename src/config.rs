@@ -12,8 +12,8 @@ use anyhow::Result;
 #[derive(Debug)]
 pub struct Config {
     pub files: Vec<PathBuf>,
-    pub show_tree: bool,
     pub query_codes: Vec<DataTagKind>,
+    pub show_tree: bool,
 }
 
 impl Config {
