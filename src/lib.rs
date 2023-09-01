@@ -25,7 +25,7 @@ pub fn run(config: Config) -> anyhow::Result<()> {
             println!("{tree}");
         }
     } else {
-        let mut search = Search::new(HashSet::from_iter(config.query_codes), config.files);
+        let mut search = Search::new(config.query_codes, config.files);
         search.execute();
         println!("{search}");
     }

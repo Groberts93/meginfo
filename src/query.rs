@@ -17,20 +17,22 @@ type ResultSet = HashMap<DataTagKind, Vec<Data>>;
 
 #[derive(Debug)]
 pub struct Search {
+    orders: (Vec<PathBuf>, Vec<DataTagKind>),
     query: QuerySet,
     state: HashMap<PathBuf, SearchState>,
 }
 
 impl Search {
-    pub fn new(codes: QuerySet, files: Vec<PathBuf>) -> Self {
+    pub fn new(codes: Vec<DataTagKind>, files: Vec<PathBuf>) -> Self {
         let mut state: HashMap<PathBuf, SearchState> = HashMap::new();
 
-        for file in files {
-            state.insert(file, SearchState::Pending);
+        for file in files.iter() {
+            state.insert(file.clone(), SearchState::Pending);
         }
 
         Search {
-            query: codes,
+            orders: (files.clone(), codes.clone()),
+            query: HashSet::from_iter(codes.into_iter()),
             state: state,
         }
     }
@@ -70,14 +72,16 @@ impl Display for Search {
             .from_writer(vec![]);
 
         // write header
-        let header: Vec<DataTagKind> = self.query.clone().into_iter().collect();
-        wtr.serialize(("file", &header)).unwrap();
+        wtr.serialize(("file", &self.orders.1)).unwrap();
 
-        // write entries
+        // write entries with file and queried tags in original order
+        for file in self.orders.0.iter() {
+            let result = self.state.get(file).expect("File should be in map");
 
-        for (file, state) in self.state.iter() {
-            if let SearchState::Complete(results) = state {
-                let mut output: Vec<String> = header
+            if let SearchState::Complete(results) = result {
+                let mut output: Vec<String> = self
+                    .orders
+                    .1
                     .iter()
                     .map(|x| {
                         results
@@ -122,7 +126,10 @@ mod tests {
         }
 
         assert_eq!(search.state, state);
-        assert_eq!(search.query, default_query());
+        assert_eq!(
+            search.query,
+            HashSet::from_iter(default_query().into_iter())
+        );
     }
 
     #[test]
@@ -143,16 +150,14 @@ mod tests {
             .collect()
     }
 
-    fn default_query() -> QuerySet {
-        let tags = vec![
+    fn default_query() -> Vec<DataTagKind> {
+        vec![
             DataTagKind::FileId,
             DataTagKind::MeasDate,
             DataTagKind::Sfreq,
             DataTagKind::BadChs,
             DataTagKind::SphereLayers,
-        ];
-
-        HashSet::from_iter(tags.into_iter())
+        ]
     }
 
     fn default_tags() -> Vec<Tag> {
