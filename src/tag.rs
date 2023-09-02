@@ -14,9 +14,11 @@
 //! Contains code to parse these from u8 slices using nomparser.
 //!
 
+use csv::ReaderBuilder;
 use nom::multi;
 use nom::number::complete::{be_f32, be_i32};
 use nom::{sequence, IResult};
+use std::collections::HashMap;
 use std::fmt::Display;
 
 use crate::enums::{BlockKind, BlockTagKind, DataTagKind};
@@ -199,7 +201,7 @@ pub struct IdStruct {
     usecs: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct TagDef {
     pub code: i32,
     pub name: String,
@@ -218,6 +220,32 @@ impl Default for TagDef {
             description: "Unrecognized tag".to_string(),
         }
     }
+}
+
+impl Display for TagDef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let out = format!(
+            "{} ({}): {} ({})",
+            self.name, self.dtype, self.description, self.unit
+        );
+        write!(f, "{}", out)
+    }
+}
+
+pub fn read_tag_dict() -> HashMap<String, TagDef> {
+    let mut reader = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .from_path("fiff/tags.tsv")
+        .expect("file should be found in fiff/tags.tsv");
+
+    let mut string_to_tag: HashMap<String, TagDef> = HashMap::new();
+
+    for result in reader.deserialize() {
+        let record: TagDef = result.expect("static tsv should have been readable");
+        string_to_tag.insert(record.name.clone(), record);
+    }
+
+    string_to_tag
 }
 
 pub fn tag_header(input: &[u8]) -> IResult<&[u8], (u64, Header)> {

@@ -34,6 +34,9 @@ struct Cli {
     show_tree: bool,
 
     #[arg(long, short)]
+    describe: bool,
+
+    #[arg(long, short)]
     log: Option<LevelFilter>,
 }
 
@@ -89,7 +92,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     let files = strings_to_filepaths(files);
-    let config = Config::new(files, cli.show_tree, cli.tags)?;
+    let config = Config::new(files, cli.show_tree, cli.tags, cli.describe)?;
     run(config)?;
     Ok(())
 }

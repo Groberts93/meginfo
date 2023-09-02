@@ -1,11 +1,9 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 
 use anyhow::anyhow;
-use csv::ReaderBuilder;
 
 use crate::enums::DataTagKind;
-use crate::tag::TagDef;
+use crate::tag::{self, TagDef};
 
 use anyhow::Result;
 
@@ -14,11 +12,17 @@ pub struct Config {
     pub files: Vec<PathBuf>,
     pub query_codes: Vec<DataTagKind>,
     pub show_tree: bool,
+    pub describe_tags: Vec<TagDef>,
 }
 
 impl Config {
-    pub fn new(files: Vec<PathBuf>, show_tree: bool, query_tags: Vec<String>) -> Result<Config> {
-        let string_to_tag = read_tag_dict();
+    pub fn new(
+        files: Vec<PathBuf>,
+        show_tree: bool,
+        query_tags: Vec<String>,
+        describe: bool,
+    ) -> Result<Config> {
+        let string_to_tag = tag::read_tag_dict();
         let query_codes: Result<Vec<&TagDef>> = query_tags
             .iter()
             .map(|x| {
@@ -29,7 +33,15 @@ impl Config {
             })
             .collect();
 
-        let query_codes: Vec<DataTagKind> = query_codes?
+        let query_codes = query_codes?;
+
+        let describe_tags: Vec<TagDef> = if describe {
+            query_codes.clone().into_iter().cloned().collect()
+        } else {
+            vec![]
+        };
+
+        let query_codes: Vec<DataTagKind> = query_codes
             .into_iter()
             .map(|x| DataTagKind::from_code(x.code))
             .collect();
@@ -38,22 +50,7 @@ impl Config {
             files,
             show_tree,
             query_codes,
+            describe_tags,
         })
     }
-}
-
-fn read_tag_dict() -> HashMap<String, TagDef> {
-    let mut reader = ReaderBuilder::new()
-        .delimiter(b'\t')
-        .from_path("fiff/tags.tsv")
-        .expect("file should be found in fiff/tags.tsv");
-
-    let mut string_to_tag: HashMap<String, TagDef> = HashMap::new();
-
-    for result in reader.deserialize() {
-        let record: TagDef = result.expect("static tsv should have been readable");
-        string_to_tag.insert(record.name.clone(), record);
-    }
-
-    string_to_tag
 }
