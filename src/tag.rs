@@ -15,7 +15,7 @@
 //!
 
 use csv::ReaderBuilder;
-use nom::multi;
+use nom::{multi, AsBytes};
 use nom::number::complete::{be_f32, be_i32};
 use nom::{sequence, IResult};
 use std::collections::HashMap;
@@ -233,10 +233,10 @@ impl Display for TagDef {
 }
 
 pub fn read_tag_dict() -> HashMap<String, TagDef> {
+
+    let file = include_bytes!("../fiff/tags.tsv");
     let mut reader = ReaderBuilder::new()
-        .delimiter(b'\t')
-        .from_path("fiff/tags.tsv")
-        .expect("file should be found in fiff/tags.tsv");
+        .delimiter(b'\t').from_reader(file.as_bytes());
 
     let mut string_to_tag: HashMap<String, TagDef> = HashMap::new();
 
