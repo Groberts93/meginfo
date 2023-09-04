@@ -41,10 +41,12 @@ impl Config {
             vec![]
         };
 
-        let query_codes: Vec<DataTagKind> = query_codes
+        let query_codes: Result<Vec<DataTagKind>> = query_codes
             .into_iter()
             .map(|x| DataTagKind::from_code(x.code))
             .collect();
+
+        let query_codes = query_codes?;
 
         Ok(Config {
             files,

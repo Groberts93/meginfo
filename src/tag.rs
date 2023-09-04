@@ -15,11 +15,13 @@
 //!
 
 use csv::ReaderBuilder;
-use nom::{multi, AsBytes};
 use nom::number::complete::{be_f32, be_i32};
+use nom::{multi, AsBytes};
 use nom::{sequence, IResult};
 use std::collections::HashMap;
 use std::fmt::Display;
+
+use anyhow::Result;
 
 use crate::enums::{BlockKind, BlockTagKind, DataTagKind};
 use serde::Deserialize;
@@ -88,30 +90,30 @@ impl Default for Tag {
 }
 
 impl Tag {
-    pub fn from_header_slice(header: Header, slice: Vec<u8>) -> Self {
+    pub fn from_header_slice(header: Header, slice: Vec<u8>) -> Result<Self> {
         // see if it's a block code first
         if let Ok(kind) = BlockTagKind::from_code(header.code) {
-            return Tag::Block {
+            return Ok(Tag::Block {
                 kind,
                 data: Data::from_slice(slice, header.dtype), // TODO: implement this properly
-            };
+            });
         // otherwise we assume it's a normal tag
         } else {
-            return Tag::Data {
-                kind: DataTagKind::from_code(header.code),
+            return Ok(Tag::Data {
+                kind: DataTagKind::from_code(header.code)?,
                 data: Data::from_slice(slice, header.dtype),
-            };
+            });
         }
     }
 
-    pub fn from_header_file_position(header: Header, start: u64, size: u64) -> Self {
-        Tag::Data {
-            kind: DataTagKind::from_code(header.code),
+    pub fn from_header_file_position(header: Header, start: u64, size: u64) -> Result<Self> {
+        Ok(Tag::Data {
+            kind: DataTagKind::from_code(header.code)?,
             data: Data::InFile {
                 start: start,
                 size: size,
             },
-        }
+        })
     }
 }
 
@@ -233,16 +235,19 @@ impl Display for TagDef {
 }
 
 pub fn read_tag_dict() -> HashMap<String, TagDef> {
-
     let file = include_bytes!("../fiff/tags.tsv");
     let mut reader = ReaderBuilder::new()
-        .delimiter(b'\t').from_reader(file.as_bytes());
+        .delimiter(b'\t')
+        .from_reader(file.as_bytes());
 
     let mut string_to_tag: HashMap<String, TagDef> = HashMap::new();
 
     for result in reader.deserialize() {
         let record: TagDef = result.expect("static tsv should have been readable");
-        string_to_tag.insert(record.name.clone(), record);
+
+        if let Ok(_) = DataTagKind::from_code(record.code) {
+            string_to_tag.insert(record.name.clone(), record);
+        }
     }
 
     string_to_tag

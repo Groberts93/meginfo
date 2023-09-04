@@ -1,5 +1,6 @@
 // home for giant enums which will clutter the rest of the codebase
 
+use anyhow::Result;
 use serde::Serialize;
 
 // tag code, see fiff/tags.tsv
@@ -237,12 +238,11 @@ pub enum DataTagKind {
     VolBlockSize,
     VolDirectory,
     MemDataBuffer,
-    Code(i32),
 }
 
 impl DataTagKind {
-    pub fn from_code(code: i32) -> Self {
-        match code {
+    pub fn from_code(code: i32) -> Result<Self> {
+        let out = match code {
             100 => DataTagKind::FileId,
             101 => DataTagKind::DirPointer,
             102 => DataTagKind::Dir,
@@ -465,8 +465,12 @@ impl DataTagKind {
             4014 => DataTagKind::VolBlockSize,
             4015 => DataTagKind::VolDirectory,
             10300 => DataTagKind::MemDataBuffer,
-            _ => DataTagKind::Code(code),
-        }
+            _ => {
+                return Err(anyhow::anyhow!("Unrecognized data tag code: {code}"));
+            }
+        };
+
+        Ok(out)
     }
 }
 
