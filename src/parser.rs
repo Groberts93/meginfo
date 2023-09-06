@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use log::info;
+use log::{info, warn};
 use std::fs::File;
 use std::io::{self, Read, Seek};
 use std::path::PathBuf;
@@ -31,7 +31,7 @@ impl FifParser {
 
         let mut reader = io::BufReader::with_capacity(BUFFER_SIZE, fh);
         let mut header_buf = [0u8; 16];
-        let mut tags = vec![];
+        let mut tags: Vec<Tag> = vec![];
 
         let mut position = 0u64;
 
@@ -50,7 +50,11 @@ impl FifParser {
 
             position += size;
 
-            tags.push(tag);
+            if let Ok(tag) = tag {
+                tags.push(tag);
+            } else {
+                warn!("Unknown tag");
+            }
         }
 
         let cur_pos = reader
