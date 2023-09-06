@@ -50,11 +50,10 @@ impl FifParser {
 
             position += size;
 
-            if let Ok(tag) = tag {
-                tags.push(tag);
-            } else {
-                warn!("Unknown tag");
-            }
+            match tag {
+                Ok(tag) => tags.push(tag),
+                Err(e) => warn!("{e}"),
+            } 
         }
 
         let cur_pos = reader
