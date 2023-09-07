@@ -18,7 +18,6 @@ pub mod graph;
 pub mod parser;
 pub mod query;
 pub mod tag;
-pub mod benchtest;
 
 use anyhow;
 use config::Config;
