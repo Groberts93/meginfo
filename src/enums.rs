@@ -1,5 +1,4 @@
-// home for giant enums which will clutter the rest of the codebase
-
+//! FIFF tag enums
 use anyhow::Result;
 use serde::Serialize;
 

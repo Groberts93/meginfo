@@ -1,3 +1,5 @@
+//! Parse a .fif file into tree structure or vector of tags
+
 use anyhow::{Context, Result};
 use log::{info, warn};
 use std::fs::File;

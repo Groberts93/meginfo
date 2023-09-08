@@ -1,3 +1,5 @@
+//! Set up configuration for CLI binary.
+
 use std::path::PathBuf;
 
 use anyhow::anyhow;

@@ -1,3 +1,5 @@
+//! Petgraph-backed tree structure.
+
 use petgraph::stable_graph::{NodeIndex, StableGraph};
 use petgraph::Directed;
 use std::fmt::Display;

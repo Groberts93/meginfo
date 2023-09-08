@@ -1,3 +1,5 @@
+//! Higher level API for searching multiple .fif files for list of tags.
+
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,

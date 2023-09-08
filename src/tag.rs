@@ -1,4 +1,4 @@
-//! Tag
+//! Model for the tag element of a .fif file.
 //!
 //! This is an abstraction to contain tags read from a fif file.
 //! Each tag comprises a header and a data block.
