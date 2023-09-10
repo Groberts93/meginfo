@@ -1,5 +1,5 @@
 [package]
-name = "meginfo"
+name = "fiff"
 version = "0.1.0"
 edition = "2021"
 description = "Reads fif files fast"

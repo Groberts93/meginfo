@@ -55,7 +55,7 @@ impl FifParser {
             match tag {
                 Ok(tag) => tags.push(tag),
                 Err(e) => warn!("{e}"),
-            } 
+            }
         }
 
         let cur_pos = reader

@@ -1,20 +1,9 @@
-//! This is a tool for parsing and querying FIF format neuroimaging data.
-//!
-//! # Usage
-//!
-//! Look at one file with:
-//!
-//! `meginfo -f file.fif`
-//!
-//! A file list can be read from stdin:
-//!
-//! `find data | meginfo`
-//!
+#![doc = include_str!("../../README.md")]
 
 use anyhow::anyhow;
 use atty::Stream;
 use clap::Parser;
-use meginfo::{config::Config, run};
+use fiff::{config::Config, run};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 

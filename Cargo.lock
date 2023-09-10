@@ -337,6 +337,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "fiff"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "atty",
+ "clap",
+ "criterion",
+ "csv",
+ "env_logger",
+ "log",
+ "nom",
+ "petgraph",
+ "serde",
+ "termtree",
+]
+
+[[package]]
 name = "fixedbitset"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -443,23 +460,6 @@ name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
-
-[[package]]
-name = "meginfo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "atty",
- "clap",
- "criterion",
- "csv",
- "env_logger",
- "log",
- "nom",
- "petgraph",
- "serde",
- "termtree",
-]
 
 [[package]]
 name = "memchr"

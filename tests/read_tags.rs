@@ -1,4 +1,4 @@
-use meginfo::parser::FifParser;
+use fiff::parser::FifParser;
 
 #[test]
 pub fn can_read_tags() {
