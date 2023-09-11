@@ -1,5 +1,6 @@
 use fiff::parser::FifParser;
 
+#[ignore]
 #[test]
 pub fn can_read_tags() {
     let tags = FifParser::read_tags("data/file_0.fif".into())

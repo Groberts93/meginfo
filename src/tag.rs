@@ -298,3 +298,23 @@ pub fn idstruct(input: &[u8]) -> IResult<&[u8], IdStruct> {
         },
     ))
 }
+
+mod tests {
+    use super::*;
+    use chrono::NaiveDateTime;
+
+    #[test]
+    fn can_decode_date() {
+        let data = Data::Int32(vec![1646226731, 138511]);
+
+        if let Data::Int32(ivec) = data {
+            assert_eq!(ivec.len(), 2);
+
+            let timestamp =
+                NaiveDateTime::from_timestamp_opt(ivec[0].into(), ivec[1].try_into().unwrap())
+                    .unwrap();
+
+            println!("{timestamp}");
+        }
+    }
+}
