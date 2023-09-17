@@ -195,6 +195,27 @@ fn display_vec<T: Display>(input: &[T]) -> String {
     }
 }
 
+pub struct LabelledData(DataTagKind, Data);
+
+impl LabelledData {
+    pub fn new(kind: DataTagKind, data: Data) -> Self {
+        LabelledData(kind, data)
+    }
+}
+
+impl Display for LabelledData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let out = match self {
+            LabelledData(DataTagKind::MeasDate, Data::Int32(data)) => {
+                format!("{}", decode_unix_date(data))
+            }
+            LabelledData(_, data) => format!("{data}"),
+        };
+
+        write!(f, "{}", out)
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct IdStruct {
     version: i32,
@@ -298,10 +319,16 @@ pub fn idstruct(input: &[u8]) -> IResult<&[u8], IdStruct> {
         },
     ))
 }
+use chrono::NaiveDateTime;
+
+pub fn decode_unix_date(ivec: &Vec<i32>) -> String {
+    NaiveDateTime::from_timestamp_opt(ivec[0].into(), ivec[1].try_into().unwrap())
+        .unwrap()
+        .to_string()
+}
 
 mod tests {
     use super::*;
-    use chrono::NaiveDateTime;
 
     #[test]
     fn can_decode_date() {
@@ -310,11 +337,7 @@ mod tests {
         if let Data::Int32(ivec) = data {
             assert_eq!(ivec.len(), 2);
 
-            let timestamp =
-                NaiveDateTime::from_timestamp_opt(ivec[0].into(), ivec[1].try_into().unwrap())
-                    .unwrap();
-
-            println!("{timestamp}");
+            decode_unix_date(&ivec);
         }
     }
 }

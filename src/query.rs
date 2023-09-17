@@ -11,7 +11,7 @@ use anyhow::Result;
 
 use crate::{
     enums::DataTagKind,
-    tag::{Data, Tag},
+    tag::{Data, LabelledData, Tag},
 };
 
 type QuerySet = HashSet<DataTagKind>;
@@ -86,11 +86,14 @@ impl Display for Search {
                     .1
                     .iter()
                     .map(|x| {
+                        let kind = x.clone();
                         results
                             .get(x)
                             .unwrap_or(&vec![])
                             .get(0)
-                            .map_or("Not found".to_owned(), |x| x.to_string())
+                            .map_or("Not found".to_owned(), |x| {
+                                LabelledData::new(kind, x.clone()).to_string()
+                            })
                     })
                     .collect();
 
