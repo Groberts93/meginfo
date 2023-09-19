@@ -8,6 +8,7 @@ use std::{
 
 use crate::FifParser;
 use anyhow::Result;
+use log::info;
 
 use crate::{
     enums::DataTagKind,
@@ -60,6 +61,12 @@ impl Search {
                         .and_modify(|x| x.push(data.clone()))
                         .or_insert(vec![data]);
                 }
+            }
+        }
+
+        for (kind, tvec) in results.iter() {
+            if tvec.len() > 1 {
+                info!("found {} tags for {:?}", tvec.len(), kind);
             }
         }
 
