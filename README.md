@@ -40,3 +40,7 @@ Show all command line options using `meginfo --help`.
 # Notes
 
 This is my first ever rust project; I just got done reading the book.  As a novice to rust and systems programming in general, I mainly focused on implementing the functionality I wanted, at the expense of basically everything else: I've not published it on crates.io yet for this reason.  If you're interested in using this as an actual tool, I'm open to suggestions/pull requests/whatever, feel free to get in touch!
+
+# Acknowledgements
+
+The fiff tag, block and primitive definitions were sourced from `https://github.com/mne-tools/fiff-constants`.
